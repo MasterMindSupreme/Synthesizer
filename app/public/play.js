@@ -61,8 +61,6 @@ function drawWaveForm(samples, canvas) {
         canvas.height = canvas.clientHeight * devicePixelRatio;
         canvasSet = true;
     }
-    
-    console.log(canvas.width, canvas.height);
     line.scale(devicePixelRatio, devicePixelRatio);
     line.fillStyle = "#000000";
     line.fillRect(0,0,canvas.width,canvas.height)
