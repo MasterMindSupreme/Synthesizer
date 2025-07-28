@@ -21,6 +21,7 @@ document.getElementById('freq').addEventListener('input',
         let freq = document.getElementById("freq").value;
         const frequency = LFO1.parameters.get('frequency');
         frequency.setValueAtTime(freq, audioContext.currentTime);
+        OSC1.port.postMessage({command: 'resetSamples'});
     });
 
 
@@ -39,4 +40,37 @@ async function setup() {
         sampleRate: audioContext.sampleRate
     });
     LFO1.connect(OSC1, 0, 0);
+
+    OSC1.port.onmessage = (event) => {
+      const samples = event.data;
+      var canvas = document.getElementById("oscillatorView");
+      drawWaveForm(samples, canvas);
+    };
+
+}
+
+const devicePixelRatio = window.devicePixelRatio || 1;
+let canvasSet = false;
+function drawWaveForm(samples, canvas) {
+    var line = canvas.getContext("2d");
+    canvas.width = canvas.width;
+    if (!canvasSet) {
+        canvas.style.width = `${canvas.width}px`;
+        canvas.style.height = `${canvas.height}px`;
+        canvas.width = canvas.clientWidth * devicePixelRatio;
+        canvas.height = canvas.clientHeight * devicePixelRatio;
+        canvasSet = true;
+    }
+    
+    console.log(canvas.width, canvas.height);
+    line.scale(devicePixelRatio, devicePixelRatio);
+    line.fillStyle = "#000000";
+    line.fillRect(0,0,canvas.width,canvas.height)
+    line.strokeStyle = '#FFFFFF';
+    line.lineWidth = 0.4;
+    line.moveTo(0.5, canvas.height / 2);
+    for (let i = 0;i < samples.length;i++) {
+        line.lineTo(i, canvas.height / 2 * (1 + samples[i]) * 1 / devicePixelRatio);
+    }
+    line.stroke();
 }

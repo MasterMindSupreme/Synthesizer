@@ -23,7 +23,11 @@ class OSCProcessor extends AudioWorkletProcessor {
             if (event.data.sampleRate) {
                 this.sampleRate = event.data.sampleRate;
             }
+            if (event.data.command === "resetSamples"){
+                this.samples = [];
+            }
         };
+        this.samples = [];
     }
 
     process(inputs, outputs, parameters) {
@@ -39,6 +43,12 @@ class OSCProcessor extends AudioWorkletProcessor {
                 this.phase += currentFrequency * hertz * (input1[channel] == null ? 1 : input1[channel][i]);
                 const sample = currentAmplitude * Math.sin(this.phase);
                 output[channel][i] = sample;
+                if (this.samples.length == 1000) {
+                    this.port.postMessage(this.samples);
+                    this.samples.push(sample);
+                } else {
+                    this.samples.push(sample);
+                }
             }
             if (this.phase >= 2 * Math.PI) {
                 this.phase -= 2 * Math.PI;
