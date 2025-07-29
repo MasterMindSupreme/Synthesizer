@@ -1,0 +1,13 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Prevents text selection during drag */
+.knob-container.dragging, .knob-container.dragging * {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.knob-dial {
+    touch-action: none; /* Disables browser default touch actions like scroll/zoom */
+}
