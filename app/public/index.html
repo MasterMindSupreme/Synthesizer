@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/volume-control.css">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -50,6 +51,17 @@
         </div>
     </div>
     <script type="module" src="play.js"></script>
+
+    <!-- volume component -->
+    <div class="volume-container">
+        <div class="volume-title">Volume</div>
+            <div class="volume-slider-wrapper">
+                <input type="range" id="volume-slider" min="0" max="100" value="90">
+            </div>
+        <div class="volume-percentage" id="volume-label">90%</div>
+    </div>
+
 </body>
+<script src="components/volume-control.js"></script>
 
 </html>
