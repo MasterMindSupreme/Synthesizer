@@ -2,6 +2,7 @@
 
 <head>
     <title>Virtual Synth</title>
+    <link rel="stylesheet" href="components/volume-control.css">
 </head>
 
 <body>
@@ -12,8 +13,19 @@
     <!-- Temporary input element with temporary values for testing the initial sound environment -->
     <input id="freq" type="range" min="55" max="7040" value="440">
     <canvas id="oscillatorView" width="500px" height="150px"></canvas>
+
+    <!-- volume component -->
+    <div class="volume-container">
+        <div class="volume-title">Volume</div>
+            <div class="volume-slider-wrapper">
+                <input type="range" id="volume-slider" min="0" max="100" value="90">
+            </div>
+        <div class="volume-percentage" id="volume-label">90%</div>
+    </div>
+
 </body>
 
 <script src="play.js"></script>
+<script src="components/volume-control.js"></script>
 
 </html>
