@@ -18,7 +18,7 @@ export class Volume {
 
         this.slider = document.getElementById(`volume-slider-num${volumeIndex}`);
         this.label = document.getElementById(`volume-label-num${volumeIndex}`);
-
+        this.label.textContent = `${this.slider.value}%`
         this.slider.addEventListener("input", () => {
             this.label.textContent = `${this.slider.value}%`;
         });

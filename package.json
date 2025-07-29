@@ -4,6 +4,7 @@
   "description": "Synthesizer web app",
   "main": "app/server.js",
   "scripts": {
+    "prestart": "npm install",
     "start": "node app/server.js"
   },
   "dependencies": {
