@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="components/volume-control.css">
+    <link rel="stylesheet" href="components/volume.css">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -47,21 +47,20 @@
         <!-- Value Input -->
         <div class="mt-6">
             <input id="knob-value-input-num1" type="number"
-                class="w-24 text-center bg-white border border-gray-300 rounded-md p-2 text-5xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="w-34 text-center bg-white border border-gray-300 rounded-md p-2 text-6xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
     </div>
     <script type="module" src="play.js"></script>
 
     <!-- volume component -->
-    <div class="volume-container transform scale-[0.9]">
+    <div id="volume-component-num1" style="display: none;" class="volume-container transform scale-[0.9]">
         <div class="volume-title">Volume</div>
             <div class="volume-slider-wrapper">
-                <input type="range" id="volume-slider" min="0" max="100" value="90">
+                <input type="range" class="volume-slider" id="volume-slider-num1" min="0" max="100" value="90">
             </div>
-        <div class="volume-percentage" id="volume-label">90%</div>
+        <div class="volume-percentage" id="volume-label-num1">90%</div>
     </div>
 
 </body>
-<script src="components/volume-control.js"></script>
 
 </html>

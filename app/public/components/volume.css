@@ -23,7 +23,7 @@
     justify-content: center;
 }
 
-#volume-slider {
+.volume-slider {
     appearance: none;
     transform: rotate(-90deg);
     width: 120px;
@@ -31,7 +31,7 @@
     background: transparent;
 }
 
-#volume-slider::-webkit-slider-thumb {
+.volume-slider::-webkit-slider-thumb {
     appearance: none;
     width: 16px;
     height: 16px;
@@ -41,7 +41,7 @@
     margin-top: -7px;
 }
 
-#volume-slider::-moz-range-thumb {
+.volume-slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
     background: black;
@@ -49,12 +49,12 @@
     cursor: pointer;
 }
 
-#volume-slider::-webkit-slider-runnable-track {
+.volume-slider::-webkit-slider-runnable-track {
     height: 2px;
     background: black;
     }
 
-#volume-slider::-moz-range-track {
+.volume-slider::-moz-range-track {
     height: 2px;
     background: black;
 }

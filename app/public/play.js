@@ -1,13 +1,14 @@
 import { Knob , globalKnobIndex } from './components/knob.js';
+import { Volume , globalVolumeIndex } from './components/volume.js';
 let init = false;
 let playing = false;
 let audioContext;
 let OSC1;
 let LFO1;
 
-let knob1 = new Knob(globalKnobIndex, "Sample Knob 1", [-2, -1, 0, 1, 2]);
+let knob1 = new Knob(globalKnobIndex, document.getElementsByTagName("body")[0], "Sample Knob 1", [-2, -1, 0, 1, 2]);
 
-// let knob2 = new Knob(globalKnobIndex, "Sample Knob 2", [-4, -2, 0, 2, 4]);
+let volume1 = new Volume(globalVolumeIndex, document.getElementsByTagName("body")[0]);
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('play').addEventListener('click',
@@ -62,7 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleRate: audioContext.sampleRate
         });
         LFO1.connect(OSC1, 0, 0);
-
+        const carrierFrequency = OSC1.parameters.get('frequency');
+        let freq = knob1.inputEl.value;
+        carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
         OSC1.port.onmessage = (event) => {
             const samples = event.data;
             var canvas = document.getElementById("oscillatorView");

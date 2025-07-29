@@ -1,6 +1,6 @@
 export let globalKnobIndex = 1;
 export class Knob {
-    constructor(knobIndex, title, values) {
+    constructor(knobIndex, parent, title, values) {
         this.knobIndex = knobIndex;
         this.config = {
             elementId: `knob-component-num${this.knobIndex}`,
@@ -20,13 +20,15 @@ export class Knob {
         // --- Knob Logic ---
         if (this.knobIndex == 1) {
             this.knobContainer = document.getElementById("knob-component-num1");
+            this.knobContainer.remove();
             this.knobContainer.style = "display: block;";
+            parent.appendChild(this.knobContainer);
         } else {
             let newKnob = document.getElementById("knob-component-num1").cloneNode([true]);
             newKnob.id = `knob-component-num${this.knobIndex}`;
             newKnob.innerHTML = newKnob.innerHTML.replaceAll(`num1`, `num${this.knobIndex}`);
             this.knobContainer = newKnob;
-            document.getElementsByTagName("body")[0].appendChild(this.knobContainer);
+            parent.appendChild(this.knobContainer);
         }
 
         if (!this.knobContainer) {
