@@ -16,6 +16,14 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
+    <fieldset class="bg-white border-2 border-black rounded-xl p-10">
+        <legend class="text-4xl font-bold text-gray-700 text-center px-4 mx-auto">Tune</legend>
+
+        <div id="knob-rack" class="flex flex-row items-center justify-center space-x-4">
+            </div>
+    </fieldset>
+
+
     <!-- Knob Component Container -->
     <div id="knob-component-num1" style="display: none;" class="knob-container bg-gray-200 p-8 rounded-2xl shadow-lg text-center w-full max-w-xs transform scale-[0.35]">
         <!-- Title -->
@@ -44,5 +52,17 @@
     </div>
 
     <script src="components/knob.js"></script>
+
+    <!-- Added in this to view the knob in knob.html-->
+    <script type="module">
+        import { Knob } from './components/knob.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            const knobRack = document.getElementById('knob-rack');
+
+            new Knob(1, knobRack, "Octave", [-2, -1, 0, 1, 2]);
+            new Knob(2, knobRack, "Semitone", [-12, -6, 0, 6, 12]);
+            new Knob(3, knobRack, "Fine", [-100, -50, 0, 50, 100]);
+        });
+    </script>
 </body>
 </html>
