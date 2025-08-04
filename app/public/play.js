@@ -10,6 +10,74 @@ let knob1 = new Knob(globalKnobIndex, document.getElementsByTagName("body")[0], 
 
 let volume1 = new Volume(globalVolumeIndex, document.getElementsByTagName("body")[0]);
 
+/* open samples */
+let sampleBuffer = null;
+let sampleSource = null;
+let sampleAudioContext;
+
+function ensureSampleAudioContext() {
+  if (!sampleAudioContext) {
+    sampleAudioContext = new AudioContext();
+  }
+}
+
+const sampleSelect = document.getElementById('sampleSelect');
+const playSampleBtn = document.getElementById('playSampleBtn');
+
+// load selected sample
+sampleSelect.addEventListener('change', async () => {
+  const fileName = sampleSelect.value;
+  if (!fileName) return;
+
+  ensureSampleAudioContext();
+
+  try {
+    const res = await fetch(`/samples/${fileName}`);
+    const arrayBuffer = await res.arrayBuffer();
+    sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
+    console.log("Loaded sample:", fileName);
+    playSampleBtn.disabled = false;
+  } catch (err) {
+    console.error("Sample load error:", err);
+    playSampleBtn.disabled = true;
+  }
+});
+
+// play sample and stop after 10 seconds
+playSampleBtn.addEventListener('click', () => {
+  if (!sampleBuffer || !sampleAudioContext) return;
+
+  sampleSource = sampleAudioContext.createBufferSource();
+  sampleSource.buffer = sampleBuffer;
+  sampleSource.connect(sampleAudioContext.destination);
+  sampleSource.start();
+  sampleSource.stop(sampleAudioContext.currentTime + 10);
+});
+
+// this function fetches the list of samples from the server
+async function loadSampleList() {
+  try {
+    const res = await fetch("/samples-list");
+    const files = await res.json();
+    const sampleSelect = document.getElementById("sampleSelect");
+
+    // clear any existing options (except the placeholder)
+    sampleSelect.innerHTML = '<option disabled selected value="">-- Choose a sample --</option>';
+
+    // add one <option> per file
+    files.forEach(file => {
+      const option = document.createElement("option");
+      option.value = file;
+      option.textContent = file;
+      sampleSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Failed to load sample list:", err);
+  }
+}
+loadSampleList();
+/*open samples */
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('play').addEventListener('click',
         async () => {
