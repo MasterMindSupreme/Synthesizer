@@ -5,6 +5,7 @@ let playing = false;
 let audioContext;
 let OSC1;
 let LFO1;
+let ENV1;
 
 let knob1 = new Knob(globalKnobIndex, document.getElementsByTagName("body")[0], "Sample Knob 1", [-2, -1, 0, 1, 2]);
 
@@ -17,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setup();
                 init = true;
             }
-            playing ? OSC1.disconnect(audioContext.destination) : OSC1.connect(audioContext.destination);
+            ENV1.port.postMessage({command: playing ? 'sustainOff' : 'sustainOn'});
+            playing ? OSC1.disconnect(audioContext.destination) : ENV1.port.postMessage({command: 'resetIndex'}), OSC1.connect(audioContext.destination);
             playing = !playing;
         });
     document.getElementById('freq').addEventListener('input',
@@ -39,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setup();
                 init = true;
             }
-            console.log("qwerty");
             let freq = knob1.inputEl.value;
             const carrierFrequency = OSC1.parameters.get('frequency');
             carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
@@ -52,9 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
         audioContext = new AudioContext();
         await audioContext.audioWorklet.addModule('OSC-processor.js');
         OSC1 = new AudioWorkletNode(audioContext, 'OSC-processor', {
-            numberOfInputs: 1
+            numberOfInputs: 2
         });
         OSC1.port.postMessage({
+            sampleRate: audioContext.sampleRate
+        });
+        await audioContext.audioWorklet.addModule('ENV-processor.js');
+        ENV1 = new AudioWorkletNode(audioContext, 'ENV-processor');
+        ENV1.port.postMessage({
             sampleRate: audioContext.sampleRate
         });
         await audioContext.audioWorklet.addModule('LFO-processor.js');
@@ -63,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleRate: audioContext.sampleRate
         });
         LFO1.connect(OSC1, 0, 0);
+        ENV1.connect(OSC1, 0, 1);
         const carrierFrequency = OSC1.parameters.get('frequency');
         let freq = knob1.inputEl.value;
         carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);

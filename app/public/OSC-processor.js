@@ -32,6 +32,7 @@ class OSCProcessor extends AudioWorkletProcessor {
 
     process(inputs, outputs, parameters) {
         const input1 = inputs[0];
+        const input2 = inputs[1];
         const output = outputs[0];
         const frequency = parameters.frequency;
         const amplitude = parameters.amplitude;
@@ -42,7 +43,7 @@ class OSCProcessor extends AudioWorkletProcessor {
             for (let channel = 0; channel < output.length; channel++) {
                 this.phase += currentFrequency * hertz * (input1[channel] == null ? 1 : input1[channel][i]);
                 const sample = currentAmplitude * Math.sin(this.phase);
-                output[channel][i] = sample;
+                output[channel][i] = sample * (input2[channel] == null ? 1 : input2[channel][i]);
                 if (this.samples.length == 1000) {
                     this.port.postMessage(this.samples);
                     this.samples.push(sample);
