@@ -1077,9 +1077,6 @@ require(["main"], function(main) {
                 for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
                     await playNow(warp.setup.init(i - 69, sampleBuffer), i + noteAdjust);
                 }
-                // for (let i = noteAdjust; i >= noteAdjust; i--) {
-                //     await playNow(warp.setup.init(i, sampleBuffer), i + noteAdjust);
-                // }
                 playSampleBtn.disabled = false;
             } catch (err) {
                 console.error("Sample load error:", err);
