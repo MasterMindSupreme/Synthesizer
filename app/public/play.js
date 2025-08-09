@@ -1,5 +1,13 @@
-import { Knob , globalKnobIndex } from './components/knob.js';
-import { Volume , globalVolumeIndex } from './components/volume.js';
+import {
+    Knob,
+    globalKnobIndex
+} from './components/knob.js';
+import {
+    Volume,
+    globalVolumeIndex
+} from './components/volume.js';
+import * as warp from './warp.js';
+
 let init = false;
 let playing = false;
 let audioContext;
@@ -17,77 +25,106 @@ let sampleSource = null;
 let sampleAudioContext;
 
 function ensureSampleAudioContext() {
-  if (!sampleAudioContext) {
-    sampleAudioContext = new AudioContext();
-  }
+    if (!sampleAudioContext) {
+        sampleAudioContext = new AudioContext();
+    }
 }
 
 const sampleSelect = document.getElementById('sampleSelect');
 const playSampleBtn = document.getElementById('playSampleBtn');
 
-// load selected sample
-sampleSelect.addEventListener('change', async () => {
-  const fileName = sampleSelect.value;
-  if (!fileName) return;
-
-  ensureSampleAudioContext();
-
-  try {
-    const res = await fetch(`/samples/${fileName}`);
-    const arrayBuffer = await res.arrayBuffer();
-    sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
-    console.log("Loaded sample:", fileName);
-    playSampleBtn.disabled = false;
-  } catch (err) {
-    console.error("Sample load error:", err);
-    playSampleBtn.disabled = true;
-  }
-});
-
-// play sample and stop after 10 seconds
-playSampleBtn.addEventListener('click', () => {
-  if (!sampleBuffer || !sampleAudioContext) return;
-
-  sampleSource = sampleAudioContext.createBufferSource();
-  sampleSource.buffer = sampleBuffer;
-  sampleSource.connect(sampleAudioContext.destination);
-  sampleSource.start();
-  sampleSource.stop(sampleAudioContext.currentTime + 10);
-});
-
 // this function fetches the list of samples from the server
 async function loadSampleList() {
-  try {
-    const res = await fetch("/samples-list");
-    const files = await res.json();
-    const sampleSelect = document.getElementById("sampleSelect");
+    try {
+        const res = await fetch("/samples-list");
+        const files = await res.json();
+        const sampleSelect = document.getElementById("sampleSelect");
 
-    // clear any existing options (except the placeholder)
-    sampleSelect.innerHTML = '<option disabled selected value="">-- Choose a sample --</option>';
+        // clear any existing options (except the placeholder)
+        sampleSelect.innerHTML = '<option disabled selected value="">-- Choose a sample --</option>';
 
-    // add one <option> per file
-    files.forEach(file => {
-      const option = document.createElement("option");
-      option.value = file;
-      option.textContent = file;
-      sampleSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error("Failed to load sample list:", err);
-  }
+        // add one <option> per file
+        files.forEach(file => {
+            const option = document.createElement("option");
+            option.value = file;
+            option.textContent = file;
+            sampleSelect.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Failed to load sample list:", err);
+    }
 }
 loadSampleList();
 /*open samples */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // load selected sample
+    sampleSelect.addEventListener('change', async () => {
+        const fileName = sampleSelect.value;
+        if (!fileName) return;
+
+        ensureSampleAudioContext();
+
+        // if (!init) {
+        //     await setup();
+        //     init = true;
+        // }
+
+        // try {
+        //     const res = await fetch(`/samples/${fileName}`);
+        //     const arrayBuffer = await res.arrayBuffer();
+        //     sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
+        //     let warper = new warp.Warper(audioContext);
+        //     let pitch = await fetch("/pitch", {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({
+        //             file: `/samples/${fileName}`
+        //         })
+        //     }).then(response => {
+        //         return response.text();
+        //     });
+        //     console.log(pitch);
+        //     if (pitch == null) {
+        //         pitch = 440;
+        //     }
+        //     const noteAdjust = (12 * Math.log2(pitch / 440));
+        //     console.log((12 * Math.log2(pitch / 440)));
+        //     warper.playNow(sampleBuffer, noteAdjust);
+        //     console.log("Loaded sample:", fileName);
+        //     playSampleBtn.disabled = false;
+        // } catch (err) {
+        //     console.error("Sample load error:", err);
+        //     playSampleBtn.disabled = true;
+        // }
+    });
+
+    // play sample and stop after 10 seconds
+    playSampleBtn.addEventListener('click', () => {
+        if (!sampleBuffer || !sampleAudioContext) return;
+
+        sampleSource = sampleAudioContext.createBufferSource();
+        sampleSource.buffer = sampleBuffer;
+        sampleSource.connect(sampleAudioContext.destination);
+        sampleSource.start();
+        sampleSource.stop(sampleAudioContext.currentTime + 10);
+    });
+
     document.getElementById('play').addEventListener('click',
         async () => {
             if (!init) {
                 await setup();
                 init = true;
             }
-            ENV1.port.postMessage({command: playing ? 'sustainOff' : 'sustainOn'});
-            playing ? OSC1.disconnect(audioContext.destination) : ENV1.port.postMessage({command: 'resetIndex'}), OSC1.connect(audioContext.destination);
+            ENV1.port.postMessage({
+                command: playing ? 'sustainOff' : 'sustainOn'
+            });
+            playing ? OSC1.disconnect(audioContext.destination) : ENV1.port.postMessage({
+                command: 'resetIndex'
+            }), OSC1.connect(audioContext.destination);
             playing = !playing;
         });
     document.getElementById('freq').addEventListener('input',
