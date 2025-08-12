@@ -19,6 +19,13 @@ class OSCProcessor extends AudioWorkletProcessor {
         super();
         this.phase = 0;
         this.sampleRate = 48000;
+
+        // NEW: morph state (0..1) and target waveform
+        this.morphAmount = 0.0;          // 0 = pure sine, 1 = pure target
+        this.morphTarget = 'triangle';   // 'triangle' | 'square' | 'sawtooth'
+        
+        this.samples = [];
+
         this.port.onmessage = (event) => {
             if (event.data.sampleRate) {
                 this.sampleRate = event.data.sampleRate;
@@ -26,8 +33,36 @@ class OSCProcessor extends AudioWorkletProcessor {
             if (event.data.command === "resetSamples"){
                 this.samples = [];
             }
+
+            // NEW: accept morph messages from play.js
+            if (event.data.command === 'setMorphAmount') {
+                // clamp
+                const v = Number(event.data.value);
+                this.morphAmount = Math.max(0, Math.min(1, isFinite(v) ? v : 0));
+            }
+            if (event.data.command === 'setMorphTarget') {
+                this.morphTarget = (event.data.value || 'triangle');
+            }
         };
-        this.samples = [];
+    }
+
+    // target waveform sample from phase
+    targetSample(phase) {
+        switch (this.morphTarget) {
+        case 'square': {
+            const s = Math.sin(phase);
+            return s === 0 ? 1 : Math.sign(s);
+        }
+        case 'triangle': {
+            return (2 / Math.PI) * Math.asin(Math.sin(phase));
+        }
+        case 'sawtooth': {
+            const p = phase % (2 * Math.PI);
+            return (p / Math.PI) - 1;
+        }
+        default:
+            return Math.sin(phase);
+        }
     }
 
     process(inputs, outputs, parameters) {
@@ -42,8 +77,22 @@ class OSCProcessor extends AudioWorkletProcessor {
             const currentAmplitude = amplitude.length === 1 ? amplitude[0] : amplitude[i];            
             for (let channel = 0; channel < output.length; channel++) {
                 this.phase += currentFrequency * hertz * (input1[channel] == null ? 1 : input1[channel][i]);
-                const sample = currentAmplitude * Math.sin(this.phase);
-                output[channel][i] = sample * (input2[channel] == null ? 1 : input2[channel][i]);
+
+                // const sample = currentAmplitude * Math.sin(this.phase);
+                // output[channel][i] = sample * (input2[channel] == null ? 1 : input2[channel][i]);
+
+                // base (sine) and target, then morph
+                const s = Math.sin(this.phase);
+                const t = this.targetSample(this.phase);
+                const m = this.morphAmount;                 // 0..1
+                const mixed = (1 - m) * s + m * t;          // linear crossfade
+
+                // ENV multiplier (default 1)
+                const env = (input2[channel] == null ? 1 : input2[channel][i]);
+
+                const sample = mixed * currentAmplitude * env;
+                output[channel][i] = sample;
+
                 if (this.samples.length == 1000) {
                     this.port.postMessage(this.samples);
                     this.samples.push(sample);

@@ -57,6 +57,22 @@ async function loadSampleList() {
 loadSampleList();
 /*open samples */
 
+/* Waveform morph controls */
+const wfSlider   = document.getElementById('waveformSlider');   // 0..100
+const wfDropdown = document.getElementById('waveformDropdown'); // triangle|square|sawtooth
+
+function sendMorphState() {
+  if (!OSC1) return;
+  const amount = wfSlider ? Number(wfSlider.value) / 100 : 0;
+  const target = wfDropdown ? wfDropdown.value : 'triangle';
+  OSC1.port.postMessage({ command: 'setMorphAmount', value: amount });
+  OSC1.port.postMessage({ command: 'setMorphTarget', value: target });
+}
+
+wfSlider?.addEventListener('input', sendMorphState);
+wfDropdown?.addEventListener('change', sendMorphState);
+/* Waveform morph controls */
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // load selected sample
@@ -119,12 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setup();
                 init = true;
             }
-            ENV1.port.postMessage({
-                command: playing ? 'sustainOff' : 'sustainOn'
-            });
-            playing ? OSC1.disconnect(audioContext.destination) : ENV1.port.postMessage({
-                command: 'resetIndex'
-            }), OSC1.connect(audioContext.destination);
+            if (audioContext.state === 'suspended') await audioContext.resume();
+
+            if (playing) {
+                ENV1.port.postMessage({ command: 'sustainOff' });
+                try { OSC1.disconnect(audioContext.destination); } catch {}
+            } else {
+                ENV1.port.postMessage({ command: 'resetIndex' });
+                ENV1.port.postMessage({ command: 'sustainOn' });
+                OSC1.connect(audioContext.destination);
+            }
             playing = !playing;
         });
     document.getElementById('freq').addEventListener('input',
@@ -184,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drawWaveForm(samples, canvas);
         };
 
+        sendMorphState();
     }
 
     const devicePixelRatio = window.devicePixelRatio || 1;

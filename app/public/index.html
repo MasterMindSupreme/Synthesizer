@@ -70,6 +70,17 @@
         <button id="playSampleBtn" class="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400" disabled>▶ Play</button>
     </div>
     <script data-main="js/main" src="warp.js"></script>
+
+    <div class="waveform-morph">
+        <label id="waveformLabelLeft" class="wf-left">Sine</label>
+        <input type="range" id="waveformSlider" min="0" max="100" value="50" class="wf-slider">
+        <select id="waveformDropdown" class="wf-dropdown">
+            <option value="triangle">Triangle</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+        </select>
+    </div>
+
 </body>
 
 </html>
