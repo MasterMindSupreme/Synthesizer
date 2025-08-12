@@ -40,9 +40,23 @@ function saveWavToFile(buffer, directory, filename) {
     }
 }
 
+function loadWavFile(directory, filename) {
+    const filePath = path.join(__dirname, directory, filename);
+    try {
+        return fs.readFileSync(filePath);
+    } catch (error) {
+        console.error('Error loading WAV file:', error);
+    }
+}
+
 app.post('/osc-samples', (req, res) => {
     saveWavToFile(req.body, `./public/OSC${req.query.osc} Samples`, req.query.filename);
     res.status(200).send('File saved');
+});
+
+app.get('/osc-sample', (req, res) => {
+    const content = loadWavFile(`./public/OSC${req.query.osc} Samples`, req.query.filename);
+    res.status(200).send(content);
 });
 
 app.get('/samples-list', (req, res) => {

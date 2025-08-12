@@ -242,51 +242,9 @@ class keyboard {
         return false;
     }
 
-    stopAllNotes() {
-        console.log("Cannot stop individual notes with this simple approach");
-        return { message: "Notes will finish playing naturally" };
-    }
-
-    getPlayingNotes() {
-        const playing = [];
-        for (const key of this.activePlaying) {
-            const note = this.getNote(key);
-            const midiNumber = this.getMidiNumber(note);
-            playing.push({
-                key: key,
-                note: note,
-                midiNumber: midiNumber
-            });
-        }
-        return playing;
-    }
-
     updateSettings(newSettings) {
         this.settings = { ...this.settings, ...newSettings };
         console.log('Settings updated:', this.settings);
-    }
-
-    getSampleInfo() {
-        return {
-            totalSamples: this.availableSamples.size,
-            availableMidiNumbers: Array.from(this.availableSamples).sort((a, b) => a - b),
-            samplePath: this.samplePath,
-            platform: process.platform
-        };
-    }
-
-    getAllMappings() {
-        const mappings = {};
-        for (const [key, note] of this.KeyToNoteMap) {
-            const midiNumber = this.getMidiNumber(note);
-            mappings[key] = {
-                note: note,
-                midiNumber: midiNumber,
-                sampleFile: `${midiNumber}.wav`,
-                sampleExists: this.hasSample(midiNumber)
-            };
-        }
-        return mappings;
     }
 
     // Test method

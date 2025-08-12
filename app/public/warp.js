@@ -1,3 +1,5 @@
+import { audioContext } from "./play.js";
+
 /*
  RequireJS 2.1.8 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  Available via the MIT or new BSD license.
@@ -927,7 +929,7 @@ async function saveWavFile(audioDataInt16, sampleRate, numChannels, filename) {
     const factor = maxValue - minValue;
 
     for (let i = 0; i < audioDataInt16.length; i++) {
-        let byte = ((audioData[i] / factor) + 0.5)*((256**2 - 1))
+        let byte = ((audioData[i] / factor) + 0.6)*(256**2 - 1)*0.8
         if (byte > (16**4)/2) {
             byte = byte - ((256**2)/2 - 1)
         }
@@ -1028,21 +1030,12 @@ WindowFunction.prototype.process = function(e) {
 WindowFunction.Hann = function(e, t) {
     return .5 * (1 - Math.cos(DSP.TWO_PI * t / (e - 1)))
 }
-async function playNow(samples, noteAdjust) {
+async function save(samples, noteAdjust) {
     var u = samples;
     const audioData = samples;
     const sampleRate = 48000;
     const numChannels = 1;
     await saveWavFile(audioData, sampleRate, numChannels, `${parseInt(noteAdjust)}.wav`);
-    return;
-}
-
-let sampleAudioContext;
-
-function ensureSampleAudioContext() {
-    if (!sampleAudioContext) {
-        sampleAudioContext = new AudioContext();
-    }
 }
 
 require(["main"], function(main) {
@@ -1051,12 +1044,10 @@ require(["main"], function(main) {
             const fileName = sampleSelect.value;
             if (!fileName) return;
     
-            
-            ensureSampleAudioContext();
             try {
                 const res = await fetch(`/samples/${fileName}`);
                 const arrayBuffer = await res.arrayBuffer();
-                var sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
+                var sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 let pitch = await fetch("/pitch", {
                     method: 'POST',
                     headers: {
@@ -1073,9 +1064,8 @@ require(["main"], function(main) {
                     pitch = 440;
                 }
                 const noteAdjust = (12 * Math.log2(pitch / 440));
-                console.log(noteAdjust, 12 * Math.log2(pitch / 440));
                 for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
-                    await playNow(warp.setup.init(i - 69, sampleBuffer), i + noteAdjust);
+                    await save(warp.setup.init(i - 69, sampleBuffer), i + noteAdjust);
                 }
                 playSampleBtn.disabled = false;
             } catch (err) {
@@ -1332,14 +1322,7 @@ var Spectrum = function() {
         t = !0;
         setup = {
             init: function(t, samples) {
-                this.$files = document.querySelector("#files"),
-                this.$open = document.querySelector("#open");
-                if (!window.AudioContext && !window.webkitAudioContext)
-                    throw "No Web Audio Support";
-                if (!(window.File && window.FileReader && window.FileList && window.Blob))
-                    throw "No File API Support";
-                var n = window.AudioContext || window.webkitAudioContext;
-                this.actx = new n;
+                this.actx = audioContext;
                 var u = this;
                 this.buffer = samples,
                 this.playBuffer = null,
@@ -1357,7 +1340,7 @@ var Spectrum = function() {
             },
             stretch: function(pitchShift) {
                 var e = this.buffer;
-                var actx = new AudioContext();
+                var actx = audioContext;
                 if (!e)
                     return;
                 var a = e;

@@ -18,13 +18,21 @@ class OSCProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
         this.phase = 0;
+        this.index = 0;
         this.sampleRate = 48000;
+        this.sampled = false;
         this.port.onmessage = (event) => {
             if (event.data.sampleRate) {
                 this.sampleRate = event.data.sampleRate;
             }
             if (event.data.command === "resetSamples"){
                 this.samples = [];
+            }
+            if (event.data.command === "setSamples"){
+                this.index = 0;
+                this.modIndex = 0;
+                this.samples = event.data.samples;
+                this.sampled = true;
             }
         };
         this.samples = [];
@@ -39,21 +47,31 @@ class OSCProcessor extends AudioWorkletProcessor {
         const hertz = Math.PI * 2 / this.sampleRate;
         for (let i = 0; i < output[0].length; i++) {
             const currentFrequency = frequency.length === 1 ? frequency[0] : frequency[i];
-            const currentAmplitude = amplitude.length === 1 ? amplitude[0] : amplitude[i];            
+            const currentAmplitude = amplitude.length === 1 ? amplitude[0] : amplitude[i];
+            let sample;
             for (let channel = 0; channel < output.length; channel++) {
-                this.phase += currentFrequency * hertz * (input1[channel] == null ? 1 : input1[channel][i]);
-                const sample = currentAmplitude * Math.sin(this.phase);
-                output[channel][i] = sample * (input2[channel] == null ? 1 : input2[channel][i]);
-                if (this.samples.length == 1000) {
-                    this.port.postMessage(this.samples);
-                    this.samples.push(sample);
+                if (this.sampled) {
+                    output[channel][i] = currentAmplitude * this.samples[this.index];
                 } else {
-                    this.samples.push(sample);
+                    this.phase += (currentFrequency * hertz) * (input1[channel] == null ? 1 : input1[channel][i]);
+                    const sample = currentAmplitude * Math.sin(this.phase);
+                    output[channel][i] = sample * (input2[channel] == null ? 1 : input2[channel][i]);
+                }
+                if (!this.sampled) {
+                    if (this.samples.length == 1000) {
+                        this.port.postMessage(this.samples);
+                        this.samples.push(sample);
+                    } else {
+                        this.samples.push(sample);
+                    }
+                } else if (this.index == 0){
+                    this.port.postMessage(this.samples);
                 }
             }
             if (this.phase >= 2 * Math.PI) {
                 this.phase -= 2 * Math.PI;
             }
+            this.index++;
         }
         return true;
     }
