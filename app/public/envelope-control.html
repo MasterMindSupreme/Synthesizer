@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADSR Envelope Control</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .knob-dial {
+            background: #6b7280;
+            border: 2px solid #374151;
+            transition: all 0.1s ease;
+        }
+        
+        .knob-dial:hover {
+            background: #4b5563;
+        }
+        
+        .knob-container.dragging .knob-dial {
+            background: #374151;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Envelope Control -->
+    <fieldset class="bg-white border-2 border-black rounded-xl p-6 max-w-6xl">
+        <legend class="text-3xl font-bold text-gray-700 text-center px-4 mx-auto">Envelope</legend>
+
+        <div id="envelope-rack" class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-4">
+        </div>
+    </fieldset>
+
+    <!-- Hidden Knob Template -->
+    <div id="knob-component-num1" style="display: none;" class="knob-container bg-gray-200 p-6 rounded-2xl shadow-lg text-center">
+        <!-- Title -->
+        <h2 id="knob-title-num1" class="text-2xl font-bold text-gray-700 mb-6"></h2>
+
+        <!-- Dial and Labels Wrapper -->
+        <div class="relative w-32 h-32 mx-auto">
+            <!-- Labels will be injected here by JavaScript -->
+            <div id="knob-labels-num1" class="absolute inset-0"></div>
+
+            <!-- The circular knob dial -->
+            <div id="knob-dial-num1" class="knob-dial absolute inset-[25%] bg-gray-500 rounded-full shadow-md cursor-pointer flex items-center justify-center">
+                <!-- Thin Line Indicator -->
+                <div class="absolute top-1 left-1/2 -translate-x-1/2 w-2 h-[calc(50%-0.25rem)] bg-gray-900 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Value Input -->
+        <div class="mt-4">
+            <input id="knob-value-input-num1" type="number" class="w-16 text-center bg-white border border-gray-300 rounded-md p-1 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+
+    <script src="components/envelope-control.js"></script>
+    
+    <script type = "module">
+        document.addEventListener('DOMContentLoaded', () => {
+            const envelopeRack = document.getElementById('envelope-rack');
+
+            // ADSR Parameters with appropriate ranges
+            new Knob(1, envelopeRack, "Attack", [0, 1, 5, 10]);
+            new Knob(2, envelopeRack, "Decay", [0, 1, 5, 10]);
+            new Knob(3, envelopeRack, "Sustain", [0, 25, 50, 75, 100]);
+            new Knob(4, envelopeRack, "Release", [0, 1, 5, 10]);
+        });
+    </script>
+</body>
+</html>
