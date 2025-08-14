@@ -98,6 +98,15 @@
     </div>
     <script type="module" data-main="js/main" src="warp.js"></script>
 
+    <div class="waveform">
+        <label id="waveformLabelLeft" class="wf-left">Sine</label>
+        <input type="range" id="waveformSlider" min="0" max="100" value="50" class="wf-slider">
+        <select id="waveformDropdown" class="wf-dropdown">
+            <option value="triangle">Triangle</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+        </select>
+    </div>
 </body>
 
 </html>
