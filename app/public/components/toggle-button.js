@@ -1,4 +1,4 @@
-class ToggleButton {
+export class ToggleButton {
     constructor(element) {
         this.element = element;
         this.isActive = false;
@@ -34,5 +34,3 @@ class ToggleButton {
         return match ? parseInt(match[0]) : null;
     }
 }
-
-export default ToggleButton;

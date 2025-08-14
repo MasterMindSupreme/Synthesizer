@@ -6,6 +6,9 @@ import {
     Volume,
     globalVolumeIndex
 } from './components/volume.js';
+import {
+    ToggleButton
+} from './components/toggle-button.js';
 
 let init = false;
 let playing = false;
@@ -20,6 +23,10 @@ const octaveKnob = new Knob(globalKnobIndex, knobRack, "Octave", [-2, -1, 0, 1, 
 const semitoneKnob = new Knob(globalKnobIndex, knobRack, "Semitone", [-12, -6, 0, 6, 12]);
 const fineKnob = new Knob(globalKnobIndex, knobRack, "Fine", [-100, -50, 0, 50, 100]);
 const volumeSlider = new Volume(globalVolumeIndex, document.getElementById("OSCVolume"));
+
+document.querySelectorAll('.toggle-button').forEach(btn => {
+    new ToggleButton(btn);
+});
 
 /* open samples */
 let sampleBuffer = null;
