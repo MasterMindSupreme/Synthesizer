@@ -3,15 +3,15 @@
 <head>
     <title>Virtual Synth</title>
     <link rel="stylesheet" href="components/knob.css">
+    <link rel="stylesheet" href="components/volume.css">
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="components/volume.css">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 justify-center min-h-screen">
     <!-- Temporary play button for testing the initial sound environment -->
     <button id="play">
         play
@@ -19,10 +19,21 @@
     <!-- Temporary input element with temporary values for testing the initial sound environment -->
     <input id="freq" type="range" min="4" max="7040" value="440">
     <canvas id="oscillatorView" width="500px" height="150px"></canvas>
+    <main>
+        <div class="flex flex-row">
+        <fieldset class="bg-white border-2 border-black p-0 w-[20] my-4">
+            <legend class="text-x1 font-bold text-gray-700 text-center px-2 p-0 m-0">Tune</legend>
+
+            <div id="knob-rack" class="flex flex-col items-center md:flex-row"></div>
+        </fieldset>
+        <div id="OSCVolume"></div>
+        </div>
+    </main>
+    
 
     <!-- Knob Component Container -->
     <div id="knob-component-num1" style="display: none;"
-        class="knob-container bg-gray-200 p-8 rounded-2xl shadow-lg text-center w-full max-w-xs transform scale-[0.35]">
+        class="knob-container bg-gray-200 p-8 -my-[10rem] -mx-32 rounded-2xl shadow-lg text-center w-[24rem] transform scale-[0.225]">
         <!-- Title -->
         <h2 id="knob-title-num1" class="text-5xl font-bold text-gray-700 mb-12"></h2>
 
@@ -53,10 +64,10 @@
     <script type="module" src="play.js"></script>
 
     <!-- volume component -->
-    <div id="volume-component-num1" style="display: none;" class="volume-container transform scale-[0.9]">
+    <div id="volume-component-num1" style="display: none;" class="volume-container w-24 transform scale-[0.65]">
         <div class="volume-title">Volume</div>
             <div class="volume-slider-wrapper">
-                <input type="range" class="volume-slider" id="volume-slider-num1" min="0" max="100" value="80">
+                <input type="range" class="volume-slider" id="volume-slider-num1" min="0" max="100" value="75">
             </div>
         <div class="volume-percentage" id="volume-label-num1"></div>
     </div>
@@ -70,6 +81,7 @@
         <button id="playSampleBtn" class="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400" disabled>▶ Play</button>
     </div>
     <script type="module" data-main="js/main" src="warp.js"></script>
+
 </body>
 
 </html>

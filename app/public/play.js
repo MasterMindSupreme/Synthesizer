@@ -13,10 +13,13 @@ export let audioContext = new AudioContext();
 let OSC1;
 let LFO1;
 let ENV1;
+let currentOSC = 1;
 
-let knob1 = new Knob(globalKnobIndex, document.getElementsByTagName("body")[0], "Sample Knob 1", [-2, -1, 0, 1, 2]);
-
-let volume1 = new Volume(globalVolumeIndex, document.getElementsByTagName("body")[0]);
+const knobRack = document.getElementById('knob-rack');
+const octaveKnob = new Knob(globalKnobIndex, knobRack, "Octave", [-2, -1, 0, 1, 2]);
+const semitoneKnob = new Knob(globalKnobIndex, knobRack, "Semitone", [-12, -6, 0, 6, 12]);
+const fineKnob = new Knob(globalKnobIndex, knobRack, "Fine", [-100, -50, 0, 50, 100]);
+const volumeSlider = new Volume(globalVolumeIndex, document.getElementById("OSCVolume"));
 
 /* open samples */
 let sampleBuffer = null;
@@ -92,6 +95,61 @@ var KeyToNoteMap = new Map([
 ]);
 
 var noteToMidiMap = new Map([
+    // Octave -1
+    ['C-1', 0],
+    ['C#-1', 1],
+    ['D-1', 2],
+    ['D#-1', 3],
+    ['E-1', 4],
+    ['F-1', 5],
+    ['F#-1', 6],
+    ['G-1', 7],
+    ['G#-1', 8],
+    ['A-1', 9],
+    ['A#-1', 10],
+    ['B-1', 11],
+
+    // Octave 0
+    ['C0', 12],
+    ['C#0', 13],
+    ['D0', 14],
+    ['D#0', 15],
+    ['E0', 16],
+    ['F0', 17],
+    ['F#0', 18],
+    ['G0', 19],
+    ['G#0', 20],
+    ['A0', 21],
+    ['A#0', 22],
+    ['B0', 23],
+
+    // Octave 1
+    ['C1', 24],
+    ['C#1', 25],
+    ['D1', 26],
+    ['D#1', 27],
+    ['E1', 28],
+    ['F1', 29],
+    ['F#1', 30],
+    ['G1', 31],
+    ['G#1', 32],
+    ['A1', 33],
+    ['A#1', 34],
+    ['B1', 35],
+
+    // Octave 2 
+    ['C2', 36],
+    ['C#2', 37],
+    ['D2', 38],
+    ['D#2', 39],
+    ['E2', 40],
+    ['F2', 41],
+    ['F#2', 42],
+    ['G2', 43],
+    ['G#2', 44],
+    ['A2', 45],
+    ['A#2', 46],
+    ['B2', 47],
 
     // Octave 3 
     ['C3', 48],
@@ -140,24 +198,77 @@ var noteToMidiMap = new Map([
     ['C#6', 85],
     ['D6', 86],
     ['D#6', 87],
-    ['E6', 88]
+    ['E6', 88],
+    ['F6', 89],
+    ['F#6', 90],
+    ['G6', 91],
+    ['G#6', 92],
+    ['A6', 93],
+    ['A#6', 94],
+    ['B6', 95],
+
+    // Octave 7
+    ['C7', 96],
+    ['C#7', 97],
+    ['D7', 98],
+    ['D#7', 99],
+    ['E7', 100],
+    ['F7', 101],
+    ['F#7', 102],
+    ['G7', 103],
+    ['G#7', 104],
+    ['A7', 105],
+    ['A#7', 106],
+    ['B7', 107],
+
+    // Octave 8
+    ['C8', 108],
+    ['C#8', 109],
+    ['D8', 110],
+    ['D#8', 111],
+    ['E8', 112],
+    ['F8', 113],
+    ['F#8', 114],
+    ['G8', 115],
+    ['G#8', 116],
+    ['A8', 117],
+    ['A#8', 118],
+    ['B8', 119],
+    
+    // Octave 9
+    ['C9', 120],
+    ['C#9', 121],
+    ['D9', 122],
+    ['D#9', 123],
+    ['E9', 124],
+    ['F9', 125],
+    ['F#9', 126],
+    ['G9', 127]
+
 ]);
 
-document.addEventListener('click', () => {
-  if (audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-});
+let noteShift = 0;
+
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.addEventListener('click', async () => {
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        if (!init) {
+            await setup();
+            init = true;
+        }
+    });
 
     listenToKeys(async ({ key }) => {
         if (!init) {
             await setup();
             init = true;
         }
-        var filename = (noteToMidiMap.get(KeyToNoteMap.get(key))-12) + ".wav";
-        if ((noteToMidiMap.get(KeyToNoteMap.get(key))-12).toString() == "NaN") {
+        var filename = (noteToMidiMap.get(KeyToNoteMap.get(key))-12 + noteShift) + ".wav";
+        if ((noteToMidiMap.get(KeyToNoteMap.get(key))-12 + noteShift).toString() == "NaN") {
             return;
         }
 
@@ -168,63 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         const rawBuffer = await response.arrayBuffer();
+        let sampleFileName = document.getElementById("sampleSelect").options[document.getElementById("sampleSelect").selectedIndex].value;
         let OSC1Sample = await audioContext.decodeAudioData(rawBuffer);
-        OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0))});
+        OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName});
         document.getElementById("play").click();
     });
-    // load selected sample
-    sampleSelect.addEventListener('change', async () => {
-        const fileName = sampleSelect.value;
-        if (!fileName) return;
-
-        // ensureSampleAudioContext();
-
-        // if (!init) {
-        //     await setup();
-        //     init = true;
-        // }
-
-        // try {
-        //     const res = await fetch(`/samples/${fileName}`);
-        //     const arrayBuffer = await res.arrayBuffer();
-        //     sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
-        //     let warper = new warp.Warper(audioContext);
-        //     let pitch = await fetch("/pitch", {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({
-        //             file: `/samples/${fileName}`
-        //         })
-        //     }).then(response => {
-        //         return response.text();
-        //     });
-        //     console.log(pitch);
-        //     if (pitch == null) {
-        //         pitch = 440;
-        //     }
-        //     const noteAdjust = (12 * Math.log2(pitch / 440));
-        //     console.log((12 * Math.log2(pitch / 440)));
-        //     warper.playNow(sampleBuffer, noteAdjust);
-        //     console.log("Loaded sample:", fileName);
-        //     playSampleBtn.disabled = false;
-        // } catch (err) {
-        //     console.error("Sample load error:", err);
-        //     playSampleBtn.disabled = true;
-        // }
-    });
-
-    // play sample and stop after 10 seconds
-    // playSampleBtn.addEventListener('click', () => {
-    //     if (!sampleBuffer || !sampleAudioContext) return;
-
-    //     sampleSource = sampleAudioContext.createBufferSource();
-    //     sampleSource.buffer = sampleBuffer;
-    //     sampleSource.connect(sampleAudioContext.destination);
-    //     sampleSource.start();
-    //     sampleSource.stop(sampleAudioContext.currentTime + 10);
-    // });
 
     document.getElementById('play').addEventListener('click',
         async () => {
@@ -253,20 +312,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 command: 'resetSamples'
             });
         });
-    knob1.inputEl.addEventListener('change',
-        async () => {
-            if (!init) {
-                await setup();
-                init = true;
-            }
-            let freq = knob1.inputEl.value;
-            const carrierFrequency = OSC1.parameters.get('frequency');
-            carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
+    octaveKnob.inputEl.addEventListener('change', () => {
+            updatePitch();
+        });
+    semitoneKnob.inputEl.addEventListener('change', () => {
+            updatePitch();
+        });
+    fineKnob.inputEl.addEventListener('change', () => {
+            updatePitch();
+        });
+    volumeSlider.slider.addEventListener('input', () => {
+            updateVolume();
+        });
+    function updatePitch () {
+        let octave = parseInt(octaveKnob.inputEl.value);
+        let semitone = parseInt(semitoneKnob.inputEl.value);
+        let fine = parseInt(fineKnob.inputEl.value);
+        if (!OSC1) {
+            return;
+        }
+        let carrierFrequency;
+        if (currentOSC == 1) {
+            carrierFrequency = OSC1.parameters.get('frequency');
+        }
+        if (currentOSC == 2) {
+            carrierFrequency = OSC2.parameters.get('frequency');
+        }
+        if (currentOSC == 3) {
+            carrierFrequency = OSC3.parameters.get('frequency');
+        }
+        noteShift = octave*12+semitone;
+        try {
+            carrierFrequency.setValueAtTime(440 * Math.pow(2, octave + semitone/12 + fine/12/100), audioContext.currentTime);
             OSC1.port.postMessage({
                 command: 'resetSamples'
             });
-        });
-
+        } catch {
+            
+        }
+    }
+    function updateVolume () {
+        let volume = parseInt(volumeSlider.label.textContent.replace("%", ""));
+        if (!OSC1) {
+            return;
+        }
+        let amplitude;
+        if (currentOSC == 1) {
+            amplitude = OSC1.parameters.get('amplitude');
+        }
+        if (currentOSC == 2) {
+            amplitude = OSC2.parameters.get('amplitude');
+        }
+        if (currentOSC == 3) {
+            amplitude = OSC3.parameters.get('amplitude');
+        }
+        try {
+            amplitude.setValueAtTime(volume / 100, audioContext.currentTime);
+            OSC1.port.postMessage({
+                command: 'resetSamples'
+            });
+        } catch {
+            
+        }
+    }
     async function setup() {
         await audioContext.audioWorklet.addModule('OSC-processor.js');
         OSC1 = new AudioWorkletNode(audioContext, 'OSC-processor', {
@@ -288,12 +396,12 @@ document.addEventListener('DOMContentLoaded', () => {
         LFO1.connect(OSC1, 0, 0);
         ENV1.connect(OSC1, 0, 1);
         const carrierFrequency = OSC1.parameters.get('frequency');
-        let freq = knob1.inputEl.value;
+        let freq = octaveKnob.inputEl.value;
         carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
         OSC1.port.onmessage = (event) => {
-            const samples = event.data;
+            const samples = event.data[0];
             var canvas = document.getElementById("oscillatorView");
-            drawWaveForm(samples, canvas);
+            drawWaveForm(samples, canvas, event.data[1]);
         };
 
     }
@@ -301,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const devicePixelRatio = window.devicePixelRatio || 1;
     let canvasSet = false;
 
-    function drawWaveForm(samples, canvas) {
+    function drawWaveForm(samples, canvas, sampleName) {
         var line = canvas.getContext("2d");
         canvas.width = canvas.width;
         if (!canvasSet) {
@@ -321,5 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
             line.lineTo(i, canvas.height / 2 * (1 + samples[i]) * 1 / devicePixelRatio);
         }
         line.stroke();
+        line.font = "20px Arial";
+        line.fillStyle = "white";
+        line.textAlign = "left";
+        line.textBaseline = "top";
+        line.fillText(sampleName, 0, 0);
     }
 });

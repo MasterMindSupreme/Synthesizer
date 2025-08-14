@@ -79,6 +79,9 @@ export class Knob {
     }
 
     generateLabels() {
+        if (!this.labelsContainer) {
+            return;
+        }
         this.labelsContainer.innerHTML = '';
         const dialRadius = this.labelsContainer.offsetWidth / 2;
         const labelRadius = dialRadius * 1.05; // Position labels just inside the container edge

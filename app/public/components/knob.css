@@ -11,18 +11,3 @@ body {
 .knob-dial {
     touch-action: none; /* Disables browser default touch actions like scroll/zoom */
 }
-
-/* Scale down knob components to 60% */
-.knob-container {
-    transform: scale(0.6);
-    transform-origin: center;
-    margin: -20px; 
-}
-
-/* Adjust margins for horizontal layout on larger screens */
-@media (min-width: 768px) {
-    .knob-container {
-        margin: -30px -10px; /* Reduces horizontal spacing */
-    }
-}
-

@@ -1,6 +1,6 @@
 export let globalVolumeIndex = 1;
 
-export class Volume {    
+export class Volume {
     constructor(volumeIndex, parent) {
         this.volumeIndex = volumeIndex;
         if (this.volumeIndex == 1) {
