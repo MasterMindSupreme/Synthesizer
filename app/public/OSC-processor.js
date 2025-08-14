@@ -14,7 +14,7 @@ class OSCProcessor extends AudioWorkletProcessor {
             },
             {
                 name: 'waveform',
-                defaultValue: 1,
+                defaultValue: 0,
                 minValue: 0,
                 maxValue: 1,
             },

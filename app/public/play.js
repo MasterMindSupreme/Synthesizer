@@ -259,6 +259,12 @@ let noteShift = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    let canvasSet = false;
+
+    let samples = new Array(2000).fill(0);
+    drawWaveForm(samples, document.getElementById("oscillatorView"), "");
+
     document.addEventListener('click', async () => {
         if (audioContext.state === 'suspended') {
             audioContext.resume();
@@ -267,6 +273,16 @@ document.addEventListener('DOMContentLoaded', () => {
             await setup();
             init = true;
         }
+    });
+
+    const waveformDropdown = document.getElementById("waveformDropdown");
+    waveformDropdown.addEventListener("change", () => {
+        updateWaveform(waveformDropdown.textContent.split("\n")[waveformDropdown.selectedIndex+1].toLocaleLowerCase().replace(/[^a-zA-Z0-9]/g, ""));
+    });
+
+    const waveformSlider = document.getElementById("waveformSlider");
+    waveformSlider.addEventListener("change", () => {
+        updateWaveformSlider(waveformSlider.value / 100);
     });
 
     listenToKeys(async ({ key }) => {
@@ -358,6 +374,52 @@ document.addEventListener('DOMContentLoaded', () => {
             
         }
     }
+    function updateWaveformSlider (value) {
+        if (!OSC1) {
+            return;
+        }
+        let waveform;
+        if (currentOSC == 1) {
+            waveform = OSC1.parameters.get('waveform');
+        }
+        if (currentOSC == 2) {
+            waveform = OSC2.parameters.get('waveform');
+        }
+        if (currentOSC == 3) {
+            waveform = OSC3.parameters.get('waveform');
+        }
+        try {
+            waveform.setValueAtTime(value, audioContext.currentTime);
+            OSC1.port.postMessage({
+                command: 'resetSamples'
+            });
+        } catch {
+            
+        }
+    }
+    function updateWaveform (waveform) {
+        if (!OSC1) {
+            return;
+        }
+        if (currentOSC == 1) {
+            OSC1.port.postMessage({
+                command: waveform
+            });
+            OSC1.port.postMessage({
+                command: "resetSamples"
+            });
+        }
+        if (currentOSC == 2) {
+            OSC2.port.postMessage({
+                command: waveform
+            });
+        }
+        if (currentOSC == 3) {
+            OSC3.port.postMessage({
+                command: waveform
+            });
+        }
+    }
     function updateVolume () {
         let volume = parseInt(volumeSlider.label.textContent.replace("%", ""));
         if (!OSC1) {
@@ -412,9 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
     }
-
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    let canvasSet = false;
 
     function drawWaveForm(samples, canvas, sampleName) {
         var line = canvas.getContext("2d");

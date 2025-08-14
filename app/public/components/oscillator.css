@@ -1,0 +1,22 @@
+#oscillator {
+    background-color: rgb(138, 138, 138);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    padding-bottom: 0rem;
+    padding-right: 0.25rem;
+    width: max-content;
+}
+
+.waveform {
+    position: absolute;
+    z-index: 1;
+    color: #FFF;
+}
+
+#waveformDropdown {
+    background-color: #ffffff00;
+}
+
+#waveformDropdown option {
+    color: #000;
+}
