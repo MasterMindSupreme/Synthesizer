@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>WebMidi.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
+    <script type="module">
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const cache = new Map();
+        const voices = new Map();
+      
+        const KeyToNote = new Map([
+            ['z','C4'], ['s','C#4'], ['x','D4'], ['d','D#4'], ['c','E4'],
+            ['v','F4'], ['g','F#4'], ['b','G4'], ['h','G#4'], ['n','A4'],
+            ['j','A#4'], ['m','B4'],
+            ['q','C5'], ['2','C#5'], ['w','D5'], ['3','D#5'], ['e','E5'],
+            ['r','F5'], ['5','F#5'], ['t','G5'], ['6','G#5'], ['y','A5'],
+            ['7','A#5'], ['u','B5'], ['i','C6'], ['9','C#6'], ['o','D6'],
+            ['0','D#6'], ['p','E6'],
+        ]);
+      
+        const NoteToMidi = new Map([
+            ['C4',60], ['C#4',61], ['D4',62], ['D#4',63], ['E4',64], ['F4',65], ['F#4',66], ['G4',67], ['G#4',68], ['A4',69], ['A#4',70], ['B4',71],
+            ['C5',72], ['C#5',73], ['D5',74], ['D#5',75], ['E5',76], ['F5',77], ['F#5',78], ['G5',79], ['G#5',80], ['A5',81], ['A#5',82], ['B5',83],
+            ['C6',84], ['C#6',85], ['D6',86], ['D#6',87], ['E6',88]
+        ]);
+      
+        async function loadSample(midi) {
+            if (cache.has(midi)) return cache.get(midi);
+            const url = `OSC1 Samples/${midi}.wav`;
+            const res = await fetch(url);
+            if (!res.ok) {
+                console.warn(`Missing sample: ${url}`);
+                return null;
+            }
+            const arrBuf = await res.arrayBuffer();
+            const audioBuf = await ctx.decodeAudioData(arrBuf);
+            cache.set(midi, audioBuf);
+            return audioBuf;
+        }
+      
+        async function playSample(midi, velocity, id) {
+            const buf = await loadSample(midi);
+            if (!buf) return;
+        
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+        
+            const gain = ctx.createGain();
+            gain.gain.value = Math.max(0, Math.min(1, velocity ?? 0.8));
+        
+            src.connect(gain).connect(ctx.destination);
+            src.start();
+        
+            voices.set(id, { src, gain });
+        }
+      
+        function stopSample(id) {
+            const v = voices.get(id);
+            if (!v) return;
+            const now = ctx.currentTime;
+            v.gain.gain.cancelScheduledValues(now);
+            v.gain.gain.setValueAtTime(v.gain.gain.value, now);
+            v.gain.gain.linearRampToValueAtTime(0, now + 0.05);
+            v.src.stop(now + 0.06);
+            voices.delete(id);
+        }
+      
+        // MIDI Keyboard Support
+        WebMidi.enable().then(() => {
+            const input = WebMidi.inputs[0];
+            if (!input) {
+                document.body.innerHTML += "No MIDI input detected.<br>";
+                return;
+            }
+      
+            WebMidi.inputs.forEach((d, i) => {
+                document.body.innerHTML += `${i}: ${d.name}<br>`;
+            });
+      
+            input.addListener("noteon", "all", async (e) => {
+                if (ctx.state === "suspended") await ctx.resume();
+                const midi = e.note.number;
+                const vel = e.note.attack;
+                const ch = e.message.channel;
+                const id = `m:${ch}:${midi}`;
+                document.body.innerHTML += `${e.note.identifier} → ${midi}<br>`;
+                playSample(midi, vel, id).catch(console.error);
+            });
+      
+            input.addListener("noteoff", "all", (e) => {
+                const midi = e.note.number;
+                const ch = e.message.channel;
+                stopSample(`m:${ch}:${midi}`);
+            });
+        }).catch(err => alert(err));
+    </script>
+      
+  </head>
+  <body>
+    <h1>WebMidi.js</h1>
+  </body>
+
+</html>
