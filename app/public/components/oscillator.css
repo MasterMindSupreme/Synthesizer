@@ -11,6 +11,8 @@
     position: absolute;
     z-index: 1;
     color: #FFF;
+    font-size: 0.85rem;
+    margin: 0.25rem;
 }
 
 #waveformDropdown {
