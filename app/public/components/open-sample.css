@@ -1,0 +1,36 @@
+.open-sample {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  
+.folder-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.folder-btn:hover { 
+    filter: brightness(1.06); 
+}
+
+.folder-btn:focus-visible { 
+    outline: 2px solid #4c9ffe; outline-offset: 2px; 
+}
+
+.folder-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.file-name {
+    font: 600 18px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

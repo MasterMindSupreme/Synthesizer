@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="components/open-sample.css">
 </head>
 
 <body class="bg-gray-100 justify-center min-h-screen">
@@ -97,14 +98,15 @@
         <div class="volume-percentage" id="volume-label-num1"></div>
     </div>
 
-    <div id="sample-loader" class="flex flex-col items-center space-y-2 m-4">
-        <label class="font-bold text-lg text-gray-800">Open Sample:</label>
-        <select id="sampleSelect" class="border p-2 rounded">
-            <option disabled selected value="">-- Choose a sample --</option>
-            <!-- JS will insert options here -->
-        </select>
-        <button id="playSampleBtn" class="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400" disabled>▶ Play</button>
+    <div id="open-sample" class="open-sample">
+        <button id="openSampleBtn" class="folder-btn" aria-label="Open sample">
+          <img src="icons/folder.png" alt="Open sample" class="folder-icon">
+        </button>
+        <span id="openSampleName" class="file-name"></span>
+        <input type="file" id="openSampleInput" accept="audio/*" hidden>
     </div>
+    <script src="components/open-sample.js"></script>
+
     <script type="module" data-main="js/main" src="warp.js"></script>
 
 </body>
