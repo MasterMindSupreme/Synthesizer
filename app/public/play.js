@@ -16,6 +16,7 @@ export let audioContext = new AudioContext();
 let OSC1;
 let LFO1;
 let ENV1;
+let Filter1;
 let currentOSC = 1;
 
 const knobRack = document.getElementById('knob-rack');
@@ -317,9 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ENV1.port.postMessage({
                 command: playing ? 'sustainOff' : 'sustainOn'
             });
-            playing ? OSC1.disconnect(audioContext.destination) : ENV1.port.postMessage({
+            playing ? Filter1.disconnect(audioContext.destination) : ENV1.port.postMessage({
                 command: 'resetIndex'
-            }), OSC1.connect(audioContext.destination);
+            }), Filter1.connect(audioContext.destination);
             playing = !playing;
         });
     document.getElementById('freq').addEventListener('input',
@@ -332,6 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const modulatorFrequency = LFO1.parameters.get('frequency');
             modulatorFrequency.setValueAtTime(freq, audioContext.currentTime);
             OSC1.port.postMessage({
+                command: 'resetSamples'
+            });
+            Filter1.port.postMessage({
                 command: 'resetSamples'
             });
         });
@@ -370,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
             OSC1.port.postMessage({
                 command: 'resetSamples'
             });
+            Filter1.port.postMessage({
+                command: 'resetSamples'
+            });
         } catch {
             
         }
@@ -391,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             waveform.setValueAtTime(value, audioContext.currentTime);
             OSC1.port.postMessage({
+                command: 'resetSamples'
+            });
+            Filter1.port.postMessage({
                 command: 'resetSamples'
             });
         } catch {
@@ -419,6 +429,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 command: waveform
             });
         }
+        Filter1.port.postMessage({
+                command: 'resetSamples'
+        });
     }
     function updateVolume () {
         let volume = parseInt(volumeSlider.label.textContent.replace("%", ""));
@@ -440,6 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
             OSC1.port.postMessage({
                 command: 'resetSamples'
             });
+            Filter1.port.postMessage({
+                command: 'resetSamples'
+            });
         } catch {
             
         }
@@ -447,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function setup() {
         await audioContext.audioWorklet.addModule('OSC-processor.js');
         OSC1 = new AudioWorkletNode(audioContext, 'OSC-processor', {
-            numberOfInputs: 2
+            numberOfInputs: 7
         });
         OSC1.port.postMessage({
             sampleRate: audioContext.sampleRate
@@ -462,12 +478,19 @@ document.addEventListener('DOMContentLoaded', () => {
         LFO1.port.postMessage({
             sampleRate: audioContext.sampleRate
         });
+        await audioContext.audioWorklet.addModule('Filter-processor.js');
+        Filter1 = new AudioWorkletNode(audioContext, 'Filter-processor');
+        Filter1.port.postMessage({
+            sampleRate: audioContext.sampleRate
+        });
         LFO1.connect(OSC1, 0, 0);
         ENV1.connect(OSC1, 0, 1);
+        OSC1.connect(Filter1, 0, 0);
+        Filter1.connect(audioContext.destination);
         const carrierFrequency = OSC1.parameters.get('frequency');
         let freq = octaveKnob.inputEl.value;
         carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
-        OSC1.port.onmessage = (event) => {
+        Filter1.port.onmessage = (event) => {
             const samples = event.data[0];
             var canvas = document.getElementById("oscillatorView");
             drawWaveForm(samples, canvas, event.data[1]);
@@ -490,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         line.fillRect(0, 0, canvas.width, canvas.height)
         line.strokeStyle = '#FFFFFF';
         line.lineWidth = 0.4;
-        line.moveTo(0.5, canvas.height / 2);
+        line.moveTo(0.5, canvas.height / 2 * 1 / devicePixelRatio);
         for (let i = 0; i < samples.length; i++) {
             line.lineTo(i, canvas.height / 2 * (1 + samples[i]) * 1 / devicePixelRatio);
         }

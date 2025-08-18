@@ -10,7 +10,7 @@ class LowFrequencyOscillator extends AudioWorkletProcessor {
 				name: 'amplitude',
 				defaultValue: 1,
 				minValue: 0,
-				maxValue: 1,
+				maxValue: 100,
 			},
 		];
 	}
