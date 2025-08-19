@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="components/volume.css">
     <link rel="stylesheet" href="components/toggle-button.css">
     <link rel="stylesheet" href="components/oscillator.css">
+    <link rel="stylesheet" href="components/envelope.css">
     <link rel="stylesheet" href="components/general.css">
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,26 +36,35 @@
             </div>
             <canvas id="oscillatorView" width="600px" height="100px"></canvas>
             <div class="flex flex-row">
-            <fieldset class="border-2 border-black w-[20] h-[130]">
-                <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Tune</legend>
+                <fieldset class="border-2 border-black w-[20] h-[130]">
+                    <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Tune</legend>
 
-                <div id="knob-rack" class="flex flex-col items-center md:flex-row"></div>
-            </fieldset>
-            <div id="OSCVolume"></div>
-            <div class="button-container">
-                <div class="toggle-button" data-type="ENV1">ENV 1</div>
-                <div class="toggle-button" data-type="LFO1">LFO 1</div>
-                <div class="toggle-button" data-type="FILTER1">FILTER 1</div>
-                <div class="toggle-button" data-type="ENV2">ENV 2</div>
-                <div class="toggle-button" data-type="LFO2">LFO 2</div>
-                <div class="toggle-button" data-type="FILTER2">FILTER 2</div>
-                <div class="toggle-button" data-type="ENV3">ENV 3</div>        
-                <div class="toggle-button" data-type="LFO3">LFO 3</div>
-                <div class="toggle-button" data-type="FILTER3">FILTER 3</div>
+                    <div id="tune-rack" class="flex flex-col items-center md:flex-row"></div>
+                </fieldset>
+                <div id="OSCVolume"></div>
+                <div class="button-container">
+                    <div class="toggle-button" data-type="ENV1">ENV 1</div>
+                    <div class="toggle-button" data-type="LFO1">LFO 1</div>
+                    <div class="toggle-button" data-type="FILTER1">FILTER 1</div>
+                    <div class="toggle-button" data-type="ENV2">ENV 2</div>
+                    <div class="toggle-button" data-type="LFO2">LFO 2</div>
+                    <div class="toggle-button" data-type="FILTER2">FILTER 2</div>
+                    <div class="toggle-button" data-type="ENV3">ENV 3</div>
+                    <div class="toggle-button" data-type="LFO3">LFO 3</div>
+                    <div class="toggle-button" data-type="FILTER3">FILTER 3</div>
+                </div>
             </div>
         </div>
+        <div id="envelope">
+            <canvas id="envelopeView" width="390px" height="100px"></canvas>
+            <fieldset class="border-2 border-black w-[20] h-[130]">
+                <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Envelope</legend>
+
+                <div id="envelope-rack" class="flex flex-col items-center md:flex-row"></div>
+            </fieldset>
+        </div>
     </main>
-    </div>
+
 
     <!-- Knob Component Container -->
     <div id="knob-component-num1" style="display: none;"
@@ -87,21 +97,22 @@
         </div>
     </div>
     <script type="module" src="play.js"></script>
-    
+
     <script type="module" src="components/toggle-button.js"></script>
 
     <!-- volume component -->
-    <div id="volume-component-num1" style="display: none;" class="volume-container w-24 -mr-4 -ml-2 transform scale-[0.58] -my-7">
+    <div id="volume-component-num1" style="display: none;"
+        class="volume-container w-24 -mr-4 -ml-2 transform scale-[0.58] -my-7">
         <div class="volume-title">Volume</div>
-            <div class="volume-slider-wrapper">
-                <input type="range" class="volume-slider" id="volume-slider-num1" min="0" max="100" value="75">
-            </div>
+        <div class="volume-slider-wrapper">
+            <input type="range" class="volume-slider" id="volume-slider-num1" min="0" max="100" value="75">
+        </div>
         <div class="volume-percentage" id="volume-label-num1"></div>
     </div>
 
     <div id="open-sample" class="open-sample">
         <button id="openSampleBtn" class="folder-btn" aria-label="Open sample">
-          <img src="icons/folder.png" alt="Open sample" class="folder-icon">
+            <img src="icons/folder.png" alt="Open sample" class="folder-icon">
         </button>
         <span id="openSampleName" class="file-name"></span>
         <input type="file" id="openSampleInput" accept="audio/*" hidden>

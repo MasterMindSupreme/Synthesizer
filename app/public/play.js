@@ -19,11 +19,18 @@ let ENV1;
 let Filter1;
 let currentOSC = 1;
 
-const knobRack = document.getElementById('knob-rack');
+const knobRack = document.getElementById('tune-rack');
 const octaveKnob = new Knob(globalKnobIndex, knobRack, "Octave", [-2, -1, 0, 1, 2]);
 const semitoneKnob = new Knob(globalKnobIndex, knobRack, "Semitone", [-12, -6, 0, 6, 12]);
 const fineKnob = new Knob(globalKnobIndex, knobRack, "Fine", [-100, -50, 0, 50, 100]);
 const volumeSlider = new Volume(globalVolumeIndex, document.getElementById("OSCVolume"));
+const envelopeRack = document.getElementById('envelope-rack');
+const attack = new Knob(globalKnobIndex, envelopeRack, "Attack", [0, 1, 2, 3]);
+const decay = new Knob(globalKnobIndex, envelopeRack, "Decay", [0, 1, 2, 3]);
+const sustain = new Knob(globalKnobIndex, envelopeRack, "Sustain", [0, 25, 50, 75, 100]);
+const release = new Knob(globalKnobIndex, envelopeRack, "Release", [0, 1, 2, 3]);
+
+
 
 document.querySelectorAll('.toggle-button').forEach(btn => {
     new ToggleButton(btn);
@@ -262,9 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const devicePixelRatio = window.devicePixelRatio || 1;
     let canvasSet = false;
+    let canvasSet2 = false;
 
     let samples = new Array(2000).fill(0);
+    let envelopeValues = [attack.inputEl.value, decay.inputEl.value, sustain.inputEl.value, release.inputEl.value];
     drawWaveForm(samples, document.getElementById("oscillatorView"), "");
+    drawEnvelope(envelopeValues, document.getElementById("envelopeView"), "");
 
     document.addEventListener('click', async () => {
         if (audioContext.state === 'suspended') {
@@ -351,6 +361,19 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeSlider.slider.addEventListener('input', () => {
             updateVolume();
         });
+    attack.inputEl.addEventListener('change', () => {
+            updateEnvelope();
+        });
+    decay.inputEl.addEventListener('change', () => {
+            updateEnvelope();
+        });
+    sustain.inputEl.addEventListener('change', () => {
+            updateEnvelope();
+        });
+    release.inputEl.addEventListener('change', () => {
+            updateEnvelope();
+        });
+
     function updatePitch () {
         let octave = parseInt(octaveKnob.inputEl.value);
         let semitone = parseInt(semitoneKnob.inputEl.value);
@@ -460,6 +483,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
         }
     }
+    function updateEnvelope() {
+        envelopeValues = [parseFloat(attack.inputEl.value), parseFloat(decay.inputEl.value), parseFloat(sustain.inputEl.value), parseFloat(release.inputEl.value)];
+        var envelopeCanvas = document.getElementById("envelopeView");
+        drawEnvelope(envelopeValues, envelopeCanvas);
+    }
     async function setup() {
         await audioContext.audioWorklet.addModule('OSC-processor.js');
         OSC1 = new AudioWorkletNode(audioContext, 'OSC-processor', {
@@ -492,8 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
         carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
         Filter1.port.onmessage = (event) => {
             const samples = event.data[0];
-            var canvas = document.getElementById("oscillatorView");
-            drawWaveForm(samples, canvas, event.data[1]);
+            var oscillatorCanvas = document.getElementById("oscillatorView");
+            drawWaveForm(samples, oscillatorCanvas, event.data[1]);
         };
 
     }
@@ -523,5 +551,35 @@ document.addEventListener('DOMContentLoaded', () => {
         line.textAlign = "left";
         line.textBaseline = "top";
         line.fillText(sampleName, 0, 0);
+    }
+
+    function drawEnvelope(values, canvas) {
+        var line = canvas.getContext("2d");
+        canvas.width = canvas.width;
+        if (!canvasSet2) {
+            canvas.style.width = `${canvas.width}px`;
+            canvas.style.height = `${canvas.height}px`;
+            canvas.width = canvas.clientWidth * devicePixelRatio;
+            canvas.height = canvas.clientHeight * devicePixelRatio;
+            canvasSet2 = true;
+        }
+        line.scale(devicePixelRatio, devicePixelRatio);
+        line.fillStyle = "#000000";
+        line.fillRect(0, 0, canvas.width, canvas.height)
+        line.strokeStyle = '#FFFFFF';
+        line.lineWidth = 0.4;
+        line.beginPath();
+        line.moveTo(0.01, canvas.height * 1 / devicePixelRatio);
+        const length = 40;
+        line.lineTo(values[0]*length, (0) * 1 / devicePixelRatio);
+        line.lineTo((values[1] + values[0])*length, (canvas.height - canvas.height*values[2]/100) * 1 / devicePixelRatio);
+        line.moveTo((values[1] + values[0])*length, (canvas.height - canvas.height*values[2]/100) * 1 / devicePixelRatio);
+        line.lineTo((values[3] + values[1] + values[0])*length, (canvas.height) * 1 / devicePixelRatio);
+        line.stroke();
+        line.beginPath();
+        line.moveTo((values[1] + values[0])*length + 1, (canvas.height - canvas.height*values[2]/100) * 1 / devicePixelRatio);
+        line.arc((values[1] + values[0])*length + 1, (canvas.height - canvas.height*values[2]/100) * 1 / devicePixelRatio, 3.5, 0, Math.PI * 2);
+        line.fillStyle = '#FFFFFF';
+        line.fill();
     }
 });

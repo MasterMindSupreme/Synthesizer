@@ -69,7 +69,9 @@ export class Knob {
         this.inputEl.min = this.config.min;
         this.inputEl.max = this.config.max;
         this.inputEl.step = 1;
-
+        if (this.config.max == 3) {
+            this.inputEl.step = 0.05;
+        }
         // Generate and position labels
         this.generateLabels();
 
@@ -117,8 +119,11 @@ export class Knob {
         this.dialEl.style.transform = `rotate(${angle}deg)`;
 
         // Update input field
-        this.inputEl.value = clampedValue.toFixed(0);
-
+        if (this.inputEl.max == 3) {
+            this.inputEl.value = clampedValue.toFixed(2);
+        } else {
+            this.inputEl.value = clampedValue.toFixed(0);
+        }
         // Optionally trigger the input's change event for external listeners
         if (triggerInputChange) {
             this.inputEl.dispatchEvent(new Event('change', {
