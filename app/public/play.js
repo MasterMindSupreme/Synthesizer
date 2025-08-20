@@ -37,35 +37,44 @@ document.querySelectorAll('.toggle-button').forEach(btn => {
 });
 
 /* open samples */
-let sampleBuffer = null;
+let selectedSampleBuffer = null;
 let sampleSource = null;
 
-const sampleSelect = document.getElementById('sampleSelect');
-const playSampleBtn = document.getElementById('playSampleBtn');
+const openBtn   = document.getElementById('openSampleBtn');
+const openInput = document.getElementById('openSampleInput');   
+const openName = document.getElementById('openSampleName');     
 
-// this function fetches the list of samples from the server
-async function loadSampleList() {
-    try {
-        const res = await fetch("/samples-list");
-        const files = await res.json();
-        const sampleSelect = document.getElementById("sampleSelect");
+openBtn.addEventListener('click', () => openInput.click());
 
-        // clear any existing options (except the placeholder)
-        sampleSelect.innerHTML = '<option disabled selected value="">-- Choose a sample --</option>';
+// Handle file selection
+openInput.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
 
-        // add one <option> per file
-        files.forEach(file => {
-            const option = document.createElement("option");
-            option.value = file;
-            option.textContent = file;
-            sampleSelect.appendChild(option);
-        });
-    } catch (err) {
-        console.error("Failed to load sample list:", err);
+    openName.textContent = file.name;
+
+    // Decode file into AudioBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    selectedSampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    playSelectedSample();
+});
+
+// Play function
+function playSelectedSample(maxSeconds = 5) {
+    if (!selectedSampleBuffer) return;
+
+    if (sampleSource) {
+        try { sampleSource.stop(); } catch {}
     }
+
+    sampleSource = audioContext.createBufferSource();
+    sampleSource.buffer = selectedSampleBuffer;
+    sampleSource.connect(audioContext.destination);
+    sampleSource.start();
+    sampleSource.stop(audioContext.currentTime + maxSeconds);
 }
-loadSampleList();
-/*open samples */
+/* open samples */
 
 function listenToKeys(callback) {
   window.addEventListener('keydown', (event) => {
