@@ -1,0 +1,34 @@
+.freq-slider {
+    appearance: none;
+    width: 120px;
+    height: 10px;
+    background: transparent;
+}
+
+.freq-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+.freq-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.freq-slider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: black;
+    }
+
+.freq-slider::-moz-range-track {
+    height: 2px;
+    background: black;
+}

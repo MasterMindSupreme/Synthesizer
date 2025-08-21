@@ -1,0 +1,34 @@
+.wf-slider {
+    appearance: none;
+    width: 120px;
+    height: 10px;
+    background: transparent;
+}
+
+.wf-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+.wf-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.wf-slider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: white;
+    }
+
+.wf-slider::-moz-range-track {
+    height: 2px;
+    background: white;
+}
