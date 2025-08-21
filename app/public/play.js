@@ -37,28 +37,28 @@ document.querySelectorAll('.toggle-button').forEach(btn => {
 });
 
 /* open samples */
-let selectedSampleBuffer = null;
+export let selectedSampleBuffer = null;
 let sampleSource = null;
 
-const openBtn   = document.getElementById('openSampleBtn');
+const openBtn = document.getElementById('openSampleBtn');
 const openInput = document.getElementById('openSampleInput');   
 const openName = document.getElementById('openSampleName');     
 
-openBtn.addEventListener('click', () => openInput.click());
+// openBtn.addEventListener('click', () => openInput.click());
 
 // Handle file selection
-openInput.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+// openInput.addEventListener('change', async (e) => {
+//     const file = e.target.files && e.target.files[0];
+//     if (!file) return;
 
-    openName.textContent = file.name;
+//     openName.textContent = file.name;
 
-    // Decode file into AudioBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    selectedSampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+//     // Decode file into AudioBuffer
+//     const arrayBuffer = await file.arrayBuffer();
+//     selectedSampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    playSelectedSample();
-});
+//     playSelectedSample();
+// });
 
 // Play function
 function playSelectedSample(maxSeconds = 5) {
@@ -322,7 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         const rawBuffer = await response.arrayBuffer();
-        let sampleFileName = document.getElementById("sampleSelect").options[document.getElementById("sampleSelect").selectedIndex].value;
+        // let sampleFileName = document.getElementById("sampleSelect").options[document.getElementById("sampleSelect").selectedIndex].value;
+        let sampleFileName = document.getElementById("openSampleInput").value;
         let OSC1Sample = await audioContext.decodeAudioData(rawBuffer);
         OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName});
         document.getElementById("play").click();

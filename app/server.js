@@ -1,4 +1,4 @@
-const Keyboard = require('./public/keyboard.js'); 
+const Keyboard = require('./public/keyboard.js');
 const PitchFinder = require("pitchfinder");
 const WavDecoder = require("wav-decoder");
 const express = require('express');
@@ -14,6 +14,8 @@ const { buffer } = require("stream/consumers");
 
 app.use(bodyParser.text({ limit: '500mb' }));
 
+app.use(bodyParser.json({ limit: '500mb' }));
+
 app.use(express.text())
 
 app.use(express.static(__dirname + '/public'));
@@ -26,7 +28,7 @@ app.get('/', (req, res) => {
 
 app.post('/pitch', (req, res) => {
   let pitchDetector = PitchFinder.YIN();
-  let file = fs.readFileSync(path.join(__dirname, "public", req.body.file));
+  let file = req.body.buffer == null ? fs.readFileSync(path.join(__dirname, "public", req.body.file)) : Buffer.from((req.body.buffer.split(",")));
   let pitch = pitchDetector(WavDecoder.decode.sync(file).channelData[0].subarray(0, Math.min(24000, WavDecoder.decode.sync(file).channelData[0].length - 1)));
   res.send(pitch);
 });

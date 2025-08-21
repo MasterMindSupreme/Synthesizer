@@ -3,9 +3,15 @@ class FilterProcessor extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [{
                 name: 'alpha',
-                defaultValue: 0.2,
-                minValue: 0,
+                defaultValue: 0.001,
+                minValue: 0.001,
                 maxValue: 1,
+            },
+            {
+                name: 'resonance',
+                defaultValue: 0.001,
+                minValue: 0.001,
+                maxValue: 0.999,
             },
         ];
     }
@@ -16,6 +22,7 @@ class FilterProcessor extends AudioWorkletProcessor {
         this.M = 1;
         this.N = 1;
         this.index = 0;
+        this.history = true;
         this.x_history = new Array(this.M + 1).fill(0);
         this.y_history = new Array(this.N + 1).fill(0);
         this.port.onmessage = (event) => {
@@ -29,12 +36,14 @@ class FilterProcessor extends AudioWorkletProcessor {
         const input1 = inputs[0][0];
         const output = outputs[0];
 		const alpha = parameters.alpha;
+		const resonance = parameters.resonance;
         for (let i = 0; i < output[0].length; i++) {
             let sample;
             for (let channel = 0; channel < output.length; channel++) {
                 const currentAlpha = alpha.length === 1 ? alpha[0] : alpha[i];
+                const currentResonance = resonance.length === 1 ? resonance[0] : resonance[i];
                 this.b_coeffs = [currentAlpha];
-                this.a_coeffs = [-(1-currentAlpha)];
+                this.a_coeffs = [-(1-currentAlpha), currentResonance];
                 this.M = this.b_coeffs.length - 1;
                 this.N = this.a_coeffs.length - 1;
                 for (let j = this.M; j > 0; j--) {
@@ -47,8 +56,11 @@ class FilterProcessor extends AudioWorkletProcessor {
                 }
                 for (let j = 0; j < this.a_coeffs.length; j++) {
                     current_output -= this.a_coeffs[j] * this.y_history[j];
+                    if (Number.isNaN(current_output)) {
+                        current_output = 0;
+                    }
                 }
-                sample = current_output / 3;
+                sample = current_output * ((currentAlpha)**-(1/4)) * (currentResonance**(1/16));
                 for (let j = this.N; j > 0; j--) {
                     this.y_history[j] = this.y_history[j - 1];
                 }

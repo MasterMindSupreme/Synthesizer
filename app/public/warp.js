@@ -854,7 +854,7 @@ var requirejs, require, define;
 
 //Code adapted from VexWarp
 
-async function saveWavFile(audioDataInt16, sampleRate, numChannels, filename) {
+function saveWavFile(audioDataInt16, sampleRate, numChannels) {
     // MAKE SAMPLE RATE ADJUSTABLE
     let decimalLength = audioDataInt16.length * 2 + 44
     const part1 = decimalLength / Math.pow(256, 3)
@@ -939,14 +939,7 @@ async function saveWavFile(audioDataInt16, sampleRate, numChannels, filename) {
         header.push(parseInt(byte % 256));
         header.push(parseInt(byte / 256));
     }
-    const response = await fetch('/osc-samples' + '?filename=' + filename + '&osc=1', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'text/plain'
-        },
-        body: `${header.toString()}`
-    });
-    return;
+    return header;
     // const a = document.createElement('a');
     // a.href = url;
     // a.download = filename || 'audio.wav';
@@ -1031,30 +1024,53 @@ WindowFunction.Hann = function(e, t) {
     return .5 * (1 - Math.cos(DSP.TWO_PI * t / (e - 1)))
 }
 async function save(samples, noteAdjust) {
-    var u = samples;
     const audioData = samples;
     const sampleRate = 48000;
     const numChannels = 1;
-    await saveWavFile(audioData, sampleRate, numChannels, `${parseInt(noteAdjust)}.wav`);
+    const filename = `${parseInt(noteAdjust)}.wav`;
+    const waveBuffer = saveWavFile(audioData, sampleRate, numChannels);
+    await fetch('/osc-samples' + '?filename=' + filename + '&osc=1', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain'
+        },
+        body: `${waveBuffer.toString()}`
+    });
+}
+
+function getFileName(filePath) {
+  // Split by forward slash and then by backslash to handle mixed paths
+  const parts = filePath.split('/').pop().split('\\');
+  return parts.at(-1);
 }
 
 require(["main"], function(main) {
     var warp = new main.warpApp();
-    sampleSelect.addEventListener('change', async () => {
+    const sampleSelect = document.getElementById("openSampleInput");
+    const sampleBtn = document.getElementById("openSampleBtn");
+    sampleBtn.addEventListener('click', () => sampleSelect.click());
+    sampleSelect.addEventListener('change', async (e) => {
+            const openName = document.getElementById('openSampleName'); 
+            const file = e.target.files && e.target.files[0];
             const fileName = sampleSelect.value;
-            if (!fileName) return;
-    
+            // if (!fileName) return;
+            if (!file) return;
+            openName.textContent = getFileName(fileName);
             try {
-                const res = await fetch(`/samples/${fileName}`);
-                const arrayBuffer = await res.arrayBuffer();
-                var sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                // const res = await fetch(`/samples/${fileName}`);
+                // const arrayBuffer = await res.arrayBuffer();
+                // sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                var sampleBuffer = (await audioContext.decodeAudioData(await file.arrayBuffer()));
+                var audioBuffer = sampleBuffer;
+                const buffer = saveWavFile(audioBuffer, audioContext.sampleRate, 1);
                 let pitch = await fetch("/pitch", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        file: `/samples/${fileName}`
+                        buffer: buffer.toString(),
+                        // file: `/samples/${fileName}`
                     })
                 }).then(response => {
                     return response.text();
@@ -1065,12 +1081,12 @@ require(["main"], function(main) {
                 }
                 const noteAdjust = (12 * Math.log2(pitch / 440));
                 for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
-                    await save(warp.setup.init(i - 69, sampleBuffer), i + noteAdjust);
+                    await save(warp.setup.init(i - 69, sampleBuffer), Math.round(i + noteAdjust));
                 }
-                playSampleBtn.disabled = false;
+                // playSampleBtn.disabled = false;
             } catch (err) {
                 console.error("Sample load error:", err);
-                playSampleBtn.disabled = true;
+                // playSampleBtn.disabled = true;
             }
         });
 }),
