@@ -36,45 +36,72 @@ document.querySelectorAll('.toggle-button').forEach(btn => {
     new ToggleButton(btn);
 });
 
-/* open samples */
-let selectedSampleBuffer = null;
+/* --- Open Sample / Preset Loader --- */
+let sampleBuffer = null;
 let sampleSource = null;
+let sampleAudioContext;
 
-const openBtn   = document.getElementById('openSampleBtn');
-const openInput = document.getElementById('openSampleInput');   
-const openName = document.getElementById('openSampleName');     
+const folderBtn = document.getElementById('openSampleBtn');
+const sampleSelect = document.getElementById('sampleSelect'); 
+const playSampleBtn = document.getElementById('playSampleBtn'); 
 
-openBtn.addEventListener('click', () => openInput.click());
-
-// Handle file selection
-openInput.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
-    openName.textContent = file.name;
-
-    // Decode file into AudioBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    selectedSampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-    playSelectedSample();
+// make folder button trigger dropdown
+folderBtn.addEventListener('click', () => {
+  sampleSelect.focus();
+  sampleSelect.click();
 });
 
-// Play function
-function playSelectedSample(maxSeconds = 5) {
-    if (!selectedSampleBuffer) return;
+// when user selects a preset
+sampleSelect.addEventListener('change', async () => {
+  const fileName = sampleSelect.value;
+  if (!fileName) return;
 
-    if (sampleSource) {
-        try { sampleSource.stop(); } catch {}
-    }
+  if (!sampleAudioContext) {
+    sampleAudioContext = new AudioContext();
+  }
 
-    sampleSource = audioContext.createBufferSource();
-    sampleSource.buffer = selectedSampleBuffer;
-    sampleSource.connect(audioContext.destination);
-    sampleSource.start();
-    sampleSource.stop(audioContext.currentTime + maxSeconds);
+  try {
+    const res = await fetch(`/samples/${fileName}`);
+    const arrayBuffer = await res.arrayBuffer();
+    sampleBuffer = await sampleAudioContext.decodeAudioData(arrayBuffer);
+    console.log("Loaded sample:", fileName);
+    playSampleBtn.disabled = false;
+  } catch (err) {
+    console.error("Sample load error:", err);
+    playSampleBtn.disabled = true;
+  }
+});
+
+// play sample, cut off after 5 seconds
+playSampleBtn.addEventListener('click', () => {
+  if (!sampleBuffer || !sampleAudioContext) return;
+
+  sampleSource = sampleAudioContext.createBufferSource();
+  sampleSource.buffer = sampleBuffer;
+  sampleSource.connect(sampleAudioContext.destination);
+  sampleSource.start();
+  sampleSource.stop(sampleAudioContext.currentTime + 5);
+});
+
+// fetch list of presets from server
+async function loadSampleList() {
+  try {
+    const res = await fetch("/samples-list");
+    const files = await res.json();
+
+    // populate with server files
+    files.forEach(file => {
+      const option = document.createElement("option");
+      option.value = file;
+      option.textContent = file;
+      sampleSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Failed to load sample list:", err);
+  }
 }
-/* open samples */
+loadSampleList();
+
 
 function listenToKeys(callback) {
   window.addEventListener('keydown', (event) => {

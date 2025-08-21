@@ -110,12 +110,18 @@
         <div class="volume-percentage" id="volume-label-num1"></div>
     </div>
 
-    <div id="open-sample" class="open-sample">
-        <button id="openSampleBtn" class="folder-btn" aria-label="Open sample">
-            <img src="icons/folder.png" alt="Open sample" class="folder-icon">
+    <!-- open sample -->
+    <div id="preset-loader" class="preset-row">
+        <!-- folder icon -->
+        <button id="openSampleBtn" class="folder-btn" aria-label="Open preset samples">
+            <img src="icons/folder.png" alt="" class="folder-icon" width="24" height="24">
         </button>
-        <span id="openSampleName" class="file-name"></span>
-        <input type="file" id="openSampleInput" accept="audio/*" hidden>
+        <!-- sample selection -->
+        <select id="sampleSelect" class="preset-select">
+            <option disabled selected value="">Choose a preset</option>
+        </select>
+        <!-- play button -->
+        <button id="playSampleBtn" class="play-btn" disabled>▶ Play</button>
     </div>
 
     <script type="module" data-main="js/main" src="warp.js"></script>
