@@ -38,43 +38,42 @@ document.querySelectorAll('.toggle-button').forEach(btn => {
 
 /* open samples */
 export let selectedSampleBuffer = null;
+/* --- Open Sample / Preset Loader --- */
+let sampleBuffer = null;
 let sampleSource = null;
+let sampleAudioContext;
 
-const openBtn = document.getElementById('openSampleBtn');
-const openInput = document.getElementById('openSampleInput');   
-const openName = document.getElementById('openSampleName');     
 
-// openBtn.addEventListener('click', () => openInput.click());
+// play sample, cut off after 5 seconds
+playSampleBtn.addEventListener('click', () => {
+  if (!sampleBuffer || !sampleAudioContext) return;
 
-// Handle file selection
-// openInput.addEventListener('change', async (e) => {
-//     const file = e.target.files && e.target.files[0];
-//     if (!file) return;
+  sampleSource = sampleAudioContext.createBufferSource();
+  sampleSource.buffer = sampleBuffer;
+  sampleSource.connect(sampleAudioContext.destination);
+  sampleSource.start();
+  sampleSource.stop(sampleAudioContext.currentTime + 5);
+});
 
-//     openName.textContent = file.name;
+// fetch list of presets from server
+async function loadSampleList() {
+  try {
+    const res = await fetch("/samples-list");
+    const files = await res.json();
 
-//     // Decode file into AudioBuffer
-//     const arrayBuffer = await file.arrayBuffer();
-//     selectedSampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-//     playSelectedSample();
-// });
-
-// Play function
-function playSelectedSample(maxSeconds = 5) {
-    if (!selectedSampleBuffer) return;
-
-    if (sampleSource) {
-        try { sampleSource.stop(); } catch {}
-    }
-
-    sampleSource = audioContext.createBufferSource();
-    sampleSource.buffer = selectedSampleBuffer;
-    sampleSource.connect(audioContext.destination);
-    sampleSource.start();
-    sampleSource.stop(audioContext.currentTime + maxSeconds);
+    // populate with server files
+    files.forEach(file => {
+      const option = document.createElement("option");
+      option.value = file;
+      option.textContent = file;
+      sampleSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Failed to load sample list:", err);
+  }
 }
-/* open samples */
+loadSampleList();
+
 
 function listenToKeys(callback) {
   window.addEventListener('keydown', (event) => {
@@ -273,6 +272,7 @@ var noteToMidiMap = new Map([
 
 let noteShift = 0;
 
+let waveformNote;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let samples = new Array(2000).fill(0);
     let envelopeValues = [attack.inputEl.value, decay.inputEl.value, sustain.inputEl.value, release.inputEl.value];
     drawWaveForm(samples, document.getElementById("oscillatorView"), "");
-    drawEnvelope(envelopeValues, document.getElementById("envelopeView"), "");
+    drawEnvelope(envelopeValues, document.getElementById("envelopeView"));
 
     document.addEventListener('click', async () => {
         if (audioContext.state === 'suspended') {
@@ -325,7 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // let sampleFileName = document.getElementById("sampleSelect").options[document.getElementById("sampleSelect").selectedIndex].value;
         let sampleFileName = document.getElementById("openSampleInput").value;
         let OSC1Sample = await audioContext.decodeAudioData(rawBuffer);
-        OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName});
+        waveformNote = filename.split(".")[0];
+        updatePitch();
+        // OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName});
         document.getElementById("play").click();
     });
 
@@ -403,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         noteShift = octave*12+semitone;
         try {
-            carrierFrequency.setValueAtTime(440 * Math.pow(2, octave + semitone/12 + fine/12/100), audioContext.currentTime);
+            carrierFrequency.setValueAtTime(440 * Math.pow(2, octave + semitone/12 + fine/12/100 + (waveformNote - 60)/12), audioContext.currentTime);
             OSC1.port.postMessage({
                 command: 'resetSamples'
             });
@@ -501,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function setup() {
         await audioContext.audioWorklet.addModule('OSC-processor.js');
         OSC1 = new AudioWorkletNode(audioContext, 'OSC-processor', {
-            numberOfInputs: 7
+            numberOfInputs: 4
         });
         OSC1.port.postMessage({
             sampleRate: audioContext.sampleRate

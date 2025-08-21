@@ -1046,20 +1046,61 @@ function getFileName(filePath) {
 
 require(["main"], function(main) {
     var warp = new main.warpApp();
-    const sampleSelect = document.getElementById("openSampleInput");
-    const sampleBtn = document.getElementById("openSampleBtn");
-    sampleBtn.addEventListener('click', () => sampleSelect.click());
-    sampleSelect.addEventListener('change', async (e) => {
-            const openName = document.getElementById('openSampleName'); 
+    const sampleSelectInput = document.getElementById("openSampleInput");
+    const folderBtn = document.getElementById('openSampleBtn');
+    const sampleSelect = document.getElementById('sampleSelect'); 
+    const playSampleBtn = document.getElementById('playSampleBtn'); 
+
+    // make folder button trigger dropdown
+    folderBtn.addEventListener('click', () => {
+        sampleSelectInput.focus();
+        sampleSelectInput.click();
+    });
+
+    // when user selects a preset
+    sampleSelect.addEventListener('change', async () => {
+    const fileName = sampleSelect.value;
+    if (!fileName) return;
+    
+    try {
+        const res = await fetch(`/samples/${fileName}`);
+        const arrayBuffer = await res.arrayBuffer();
+        var sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        console.log("Loaded sample:", fileName);
+        sampleSelect.options[0].textContent = "Choose a preset";
+        let pitch = await fetch("/pitch", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file: `/samples/${fileName}`
+            })
+        }).then(response => {
+            return response.text();
+        });
+        if (pitch == null || pitch > 10000 || pitch < 40) {
+            // NOTIFY USER OF PITCH NOT BEING DETECTED 
+            pitch = 440;
+        }
+        const noteAdjust = (12 * Math.log2(pitch / 440));
+        for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
+            await save(warp.setup.init(i - 69, sampleBuffer), Math.round(i + noteAdjust));
+        }
+        playSampleBtn.disabled = false;
+    } catch (err) {
+        console.error("Sample load error:", err);
+        playSampleBtn.disabled = true;
+    }
+    });
+
+    sampleSelectInput.addEventListener('change', async (e) => {
+            const openName = document.getElementById('sampleSelect'); 
             const file = e.target.files && e.target.files[0];
-            const fileName = sampleSelect.value;
-            // if (!fileName) return;
+            const fileName = sampleSelectInput.value;
             if (!file) return;
-            openName.textContent = getFileName(fileName);
+            openName.options[0].textContent = getFileName(fileName);
             try {
-                // const res = await fetch(`/samples/${fileName}`);
-                // const arrayBuffer = await res.arrayBuffer();
-                // sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 var sampleBuffer = (await audioContext.decodeAudioData(await file.arrayBuffer()));
                 var audioBuffer = sampleBuffer;
                 const buffer = saveWavFile(audioBuffer, audioContext.sampleRate, 1);
@@ -1070,7 +1111,6 @@ require(["main"], function(main) {
                     },
                     body: JSON.stringify({
                         buffer: buffer.toString(),
-                        // file: `/samples/${fileName}`
                     })
                 }).then(response => {
                     return response.text();
@@ -1083,10 +1123,8 @@ require(["main"], function(main) {
                 for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
                     await save(warp.setup.init(i - 69, sampleBuffer), Math.round(i + noteAdjust));
                 }
-                // playSampleBtn.disabled = false;
             } catch (err) {
                 console.error("Sample load error:", err);
-                // playSampleBtn.disabled = true;
             }
         });
 }),

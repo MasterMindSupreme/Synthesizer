@@ -1,36 +1,62 @@
-.open-sample {
-    display: inline-flex;
-    align-items: center;
-    gap: .6rem;
-  }
-  
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .folder-btn {
-    display: inline-grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border: 0;
-    border-radius: 8px;
-    cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
 }
 
-.folder-btn:hover { 
-    filter: brightness(1.06); 
+.folder-icon { width: 22px; height: 22px; }
+
+.preset-select {
+  min-width: 220px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  appearance: none;       /* remove drop down */
 }
 
-.folder-btn:focus-visible { 
-    outline: 2px solid #4c9ffe; outline-offset: 2px; 
+.play-btn {
+  padding: 6px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
 }
 
-.folder-icon {
-    width: 24px;
-    height: 24px;
+.play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.file-name {
-    font: 600 18px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    max-width: 280px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.preset-menu {
+  position: absolute;
+  min-width: 220px;
+  max-height: 260px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  border-radius: 8px;
+  z-index: 9999;
 }
+
+.preset-menu ul { list-style: none; margin: 0; padding: 6px; }
+.preset-menu li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: 500 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+.preset-menu li:hover,
+.preset-menu li:focus { background: #f2f4f7; outline: none; }
