@@ -37,7 +37,16 @@
                         <option value="sawtooth">Sawtooth</option>
                     </select>
                 </div>
-                <canvas id="oscillatorView" width="600px" height="100px"></canvas>
+    
+            <!-- Oscillator On/Off Button -->
+            <div class="oscillator-power-toggle">
+                <button class="power-button" id="oscillatorPower" data-type="OSC_POWER">
+                    <img src="icons/on-button-icon-vector.png" alt="Power On" class="power-on-img">
+                    <img src="icons/off-button-icon-vector.png" alt="Power Off" class="power-off-img">
+                </button>
+            </div>
+            
+            <canvas id="oscillatorView" width="600px" height="100px"></canvas>
                 <div class="flex flex-row">
                     <fieldset class="border-2 border-black w-[20] h-[130]">
                         <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Tune</legend>
@@ -151,6 +160,19 @@
     </div>
 
     <script type="module" data-main="js/main" src="warp.js"></script>
+
+    <!-- Script for OSC On/Off toggle button (Added in 08/22/2025)-->
+    <script>
+        const oscillatorPowerButton = document.getElementById('oscillatorPower');
+        if (oscillatorPowerButton) {
+            oscillatorPowerButton.addEventListener('click', function() {
+                this.classList.toggle('active');
+
+                const isOn = this.classList.contains('active');
+                console.log('Oscillator is', isOn ? 'ON' : 'OFF');
+            });
+        }
+    </script>
 
 </body>
 
