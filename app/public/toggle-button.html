@@ -6,7 +6,7 @@
 
 <body>
     
-    <div class="button-container">
+    <div class="button-container" id="oscillator-grid">
         <div class="toggle-button" data-type="ENV1">ENV 1</div>
         <div class="toggle-button" data-type="ENV2">ENV 2</div>
         <div class="toggle-button" data-type="ENV3">ENV 3</div>
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Filter Grid -->
-    <div class="filter-container">
+    <div class="filter-container" id="filter-grid">
         <div class="toggle-button" data-type="LP1">LP 1</div>
         <div class="toggle-button" data-type="BP1">BP 1</div>
         <div class="toggle-button" data-type="HP1">HP 1</div>
@@ -37,6 +37,16 @@
         document.querySelectorAll('.toggle-button').forEach(btn => {
             new ToggleButton(btn);
         });
+
+        const filterGrid = new GridController(
+            document.getElementById('filter-grid'),
+            { 0: 'single', 1: 'single', 2: 'single' }
+        );
+        
+        const oscillatorGrid = new GridController(
+            document.getElementById('oscillator-grid'),
+            { 0: 'single', 1: 'multiple', 2: 'multiple' } 
+        );
     </script>
 </body>
 
