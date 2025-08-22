@@ -5,6 +5,7 @@
     padding-bottom: 0rem;
     padding-right: 0.25rem;
     width: max-content;
+    position: relative;
 }
 
 .waveform {
@@ -21,4 +22,60 @@
 
 #waveformDropdown option {
     color: #000;
+}
+
+.oscillator-power-toggle {
+    position: absolute;
+    top: 10px;
+    right: 5px;
+    z-index: 10;
+    /*background-color: red; /* Temporary - to see if button is there */
+}
+
+.power-button {
+    width: 1.5625rem;
+    height: 1.5625rem;
+    border: 2px solid transparent;
+    /*border: 2px solid yellow; /* Temporary - to see button outline */
+    /*background: blue; /* Temporary - to see button */
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.power-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+.power-on-img, .power-off-img {
+    width: 1.25rem;  /* Image size modifiction */
+    height: 1.25rem; /* Image size modifiction */
+    position: absolute;
+    transition: opacity 0.2s ease;
+    border-radius: 55%; /* Make the images themselves circular */
+    object-fit: cover;  
+}
+
+/* Shows filled icon when active */
+.power-button.active .power-on-img {
+    opacity: 1;
+}
+
+.power-button.active .power-off-img {
+    opacity: 0;
+}
+
+/* Shows outline icon when inactive */
+.power-button:not(.active) .power-on-img {
+    opacity: 0;
+}
+
+.power-button:not(.active) .power-off-img {
+    opacity: 1;
 }
