@@ -3,7 +3,7 @@ class FilterProcessor extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [{
                 name: 'alpha',
-                defaultValue: 0.001,
+                defaultValue: 1,
                 minValue: 0.001,
                 maxValue: 1,
             },

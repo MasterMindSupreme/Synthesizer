@@ -326,8 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let sampleFileName = document.getElementById("openSampleInput").value;
         let OSC1Sample = await audioContext.decodeAudioData(rawBuffer);
         waveformNote = filename.split(".")[0];
-        updatePitch();
-        // OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName});
+        // updatePitch();
+        OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()});
         document.getElementById("play").click();
     });
 
@@ -530,6 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const carrierFrequency = OSC1.parameters.get('frequency');
         let freq = octaveKnob.inputEl.value;
         carrierFrequency.setValueAtTime(440 * Math.pow(2, freq), audioContext.currentTime);
+        OSC1.port.onmessage = (event) => {
+            const samples = event.data[0];
+            var oscillatorCanvas = document.getElementById("oscillatorView");
+            drawWaveForm(samples, oscillatorCanvas, event.data[1]);
+        };
         Filter1.port.onmessage = (event) => {
             const samples = event.data[0];
             var oscillatorCanvas = document.getElementById("oscillatorView");

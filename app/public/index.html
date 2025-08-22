@@ -26,34 +26,57 @@
     <!-- Temporary input element with temporary values for testing the initial sound environment -->
     <input id="freq" type="range" min="4" max="7040" value="880" class="freq-slider">
     <main>
-        <div id="oscillator">
-            <div class="waveform">
-                <label id="waveformLabelLeft" class="wf-left">Sine</label>
-                <input type="range" id="waveformSlider" min="0" max="100" value="0" class="wf-slider">
-                <select id="waveformDropdown" class="wf-dropdown">
-                    <option value="triangle">Triangle</option>
-                    <option value="square">Square</option>
-                    <option value="sawtooth">Sawtooth</option>
-                </select>
-            </div>
-            <canvas id="oscillatorView" width="600px" height="100px"></canvas>
-            <div class="flex flex-row">
-                <fieldset class="border-2 border-black w-[20] h-[130]">
-                    <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Tune</legend>
+        <div style="display: flex; align-items: start;">
+            <div id="oscillator">
+                <div class="waveform">
+                    <label id="waveformLabelLeft" class="wf-left">Sine</label>
+                    <input type="range" id="waveformSlider" min="0" max="100" value="0" class="wf-slider">
+                    <select id="waveformDropdown" class="wf-dropdown">
+                        <option value="triangle">Triangle</option>
+                        <option value="square">Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                    </select>
+                </div>
+                <canvas id="oscillatorView" width="600px" height="100px"></canvas>
+                <div class="flex flex-row">
+                    <fieldset class="border-2 border-black w-[20] h-[130]">
+                        <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Tune</legend>
 
-                    <div id="tune-rack" class="flex flex-col items-center md:flex-row"></div>
-                </fieldset>
-                <div id="OSCVolume"></div>
-                <div class="button-container">
-                    <div class="toggle-button" data-type="ENV1">ENV 1</div>
-                    <div class="toggle-button" data-type="LFO1">LFO 1</div>
-                    <div class="toggle-button" data-type="FILTER1">FILTER 1</div>
-                    <div class="toggle-button" data-type="ENV2">ENV 2</div>
-                    <div class="toggle-button" data-type="LFO2">LFO 2</div>
-                    <div class="toggle-button" data-type="FILTER2">FILTER 2</div>
-                    <div class="toggle-button" data-type="ENV3">ENV 3</div>
-                    <div class="toggle-button" data-type="LFO3">LFO 3</div>
-                    <div class="toggle-button" data-type="FILTER3">FILTER 3</div>
+                        <div id="tune-rack" class="flex flex-col items-center md:flex-row"></div>
+                    </fieldset>
+                    <div id="OSCVolume"></div>
+                    <div class="button-container">
+                        <div class="toggle-button" data-type="ENV1">ENV 1</div>
+                        <div class="toggle-button" data-type="LFO1">LFO 1</div>
+                        <div class="toggle-button" data-type="FILTER1">FILTER 1</div>
+                        <div class="toggle-button" data-type="ENV2">ENV 2</div>
+                        <div class="toggle-button" data-type="LFO2">LFO 2</div>
+                        <div class="toggle-button" data-type="FILTER2">FILTER 2</div>
+                        <div class="toggle-button" data-type="ENV3">ENV 3</div>
+                        <div class="toggle-button" data-type="LFO3">LFO 3</div>
+                        <div class="toggle-button" data-type="FILTER3">FILTER 3</div>
+                    </div>
+                </div>
+            </div>
+            <div id="filter">
+                <canvas id="filterView" width="390px" height="100px"></canvas>
+                <div style="display: flex; align-items: start;">
+                    <fieldset class="border-2 border-black w-[20] h-[130]">
+                        <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Filter</legend>
+
+                        <div id="filter-rack" class="flex flex-col items-center md:flex-row"></div>
+                    </fieldset>
+                    <div class="button-container">
+                        <div class="toggle-button" data-type="LP1">LP 1</div>
+                        <div class="toggle-button" data-type="BP1">BP 1</div>
+                        <div class="toggle-button" data-type="HP1">HP 1</div>
+                        <div class="toggle-button" data-type="LP2">LP 2</div>
+                        <div class="toggle-button" data-type="BP2">BP 2</div>
+                        <div class="toggle-button" data-type="HP2">HP 2</div>
+                        <div class="toggle-button" data-type="LP3">LP 3</div>
+                        <div class="toggle-button" data-type="BP3">BP 3</div>
+                        <div class="toggle-button" data-type="HP3">HP 3</div>
+                    </div>
                 </div>
             </div>
         </div>

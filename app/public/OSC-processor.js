@@ -41,10 +41,10 @@ class OSCProcessor extends AudioWorkletProcessor {
             }
             if (event.data.command === "setSamples"){
                 this.index = 0;
-                this.modIndex = 0;
                 this.samples = event.data.samples;
                 this.sampled = true;
                 this.fileName = event.data.fileName;
+                this.pushedSamples = false;
             }
             if (event.data.command === "triangle"){
                 this.waveType = "triangle";
@@ -73,7 +73,7 @@ class OSCProcessor extends AudioWorkletProcessor {
             let sample;
             for (let channel = 0; channel < output.length; channel++) {
                 if (this.sampled) {
-                    output[channel][i] = currentAmplitude * this.samples[this.index];
+                    output[channel][i] = currentAmplitude * (input1[0] == null ? this.samples[this.index] : (this.samples[Math.floor(this.index)]*(1 - this.index % 1) + this.samples[Math.ceil(this.index)]*(this.index % 1)));
                 } else {
                     this.phase += (currentFrequency * hertz) * (input1[channel] == null ? 1 : input1[channel][i]);
                     let sharp = 0.5;
@@ -102,19 +102,22 @@ class OSCProcessor extends AudioWorkletProcessor {
                         this.port.postMessage([this.samples, ""]);
                         this.samples.push(sample);
                         this.pushedSamples = true;
-                    } else if (this.pushedSamples) {
-
-                    } else {
+                    } else if (!this.pushedSamples) {
                         this.samples.push(sample);
                     }
-                } else if (this.index == 0){
+                } else if (this.index >= this.samples.length && !this.pushedSamples){
                     this.port.postMessage([this.samples, this.fileName]);
+                    this.pushedSamples = true;
                 }
             }
             if (this.phase >= 2 * Math.PI) {
                 this.phase -= 2 * Math.PI;
             }
-            this.index++;
+            if (this.sampled) {
+                this.index = this.index + (input1[0] == null ? 1 : input1[0][i]);
+            } else {
+                this.index++;
+            }
         }
         return true;
     }
