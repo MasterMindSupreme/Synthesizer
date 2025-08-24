@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="components/rate-comp.css">
+    <title>Interactive Rate Component</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div id="rate-rack" class="flex flex-col items-center space-y-0 md:flex-row md:space-y-0 md:space-x-2">
+    </div>
+
+    <!-- Rate Component Template (hidden, used for cloning) -->
+    <div id="rate-component-template" style="display: none;" class="rate-container bg-gray-200 p-12 rounded-2xl shadow-lg text-center">
+        <!-- Title -->
+        <h2 class="rate-title text-5xl font-bold text-gray-700 mb-12">Rate</h2>
+
+        <!-- Main Control Area -->
+        <div class="rate-control-area">
+            <!-- Frequency Input (shown when Mult is off) -->
+            <div class="rate-frequency-mode">
+                <div class="flex items-center justify-center mb-6">
+                    <input type="number" class="rate-freq-input w-32 text-center bg-white border-2 border-gray-400 rounded-md p-3 text-4xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" value="0">
+                    <span class="ml-3 text-3xl font-medium text-gray-700">Hz</span>
+                </div>
+            </div>
+
+            <!-- Multiplier Mode (shown when Mult is on) -->
+            <div class="rate-mult-mode hidden">
+                <div class="flex items-center justify-center space-x-4">
+                    <div class="flex items-center bg-white border-2 border-gray-400 rounded-md">
+                        <!-- Numerator -->
+                        <div class="relative px-4 py-2">
+                            <input type="number" class="rate-numerator w-20 text-center text-4xl font-mono focus:outline-none" value="1" min="1">
+                            <div class="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                                <button class="rate-num-up text-gray-600 hover:text-gray-900 -mb-2">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 4l4 6H4z"/>
+                                    </svg>
+                                </button>
+                                <button class="rate-num-down text-gray-600 hover:text-gray-900">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 12l-4-6h8z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div class="text-4xl font-mono px-2">/</div>
+                        
+                        <!-- Denominator -->
+                        <div class="relative px-4 py-2">
+                            <input type="number" class="rate-denominator w-20 text-center text-4xl font-mono focus:outline-none" value="1" min="1">
+                            <div class="absolute -right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                                <button class="rate-denom-up text-gray-600 hover:text-gray-900 -mb-2">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 4l4 6H4z"/>
+                                    </svg>
+                                </button>
+                                <button class="rate-denom-down text-gray-600 hover:text-gray-900">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="M8 12l-4-6h8z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mult Toggle Button -->
+            <button class="rate-mult-toggle mt-6 px-6 py-3 bg-gray-700 text-white text-2xl font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                Mult
+            </button>
+        </div>
+
+        <!-- Slider (shown when Mult is off) -->
+        <div class="rate-slider-container mt-8">
+            <div class="flex items-center space-x-4">
+                <span class="text-xl font-medium text-gray-600">-</span>
+                <input type="range" class="rate-slider flex-1" min="-100" max="100" value="0">
+                <span class="text-xl font-medium text-gray-600">+</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="components/rate-comp.js"></script>
+
+    <!-- Just to show the rate component -->
+    <script type="module">
+        import { Rate } from './components/rate-comp.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            const rateRack = document.getElementById('rate-rack');
+            new Rate(1, rateRack);
+        });
+    </script>
+</body>
+</html>
