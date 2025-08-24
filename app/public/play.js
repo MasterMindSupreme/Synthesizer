@@ -9,6 +9,7 @@ import {
 import {
     ToggleButton
 } from './components/toggle-button.js';
+import { Rate } from './components/rate-comp.js';
 
 let init = false;
 let playing = false;
@@ -32,7 +33,11 @@ const release = new Knob(globalKnobIndex, envelopeRack, "Release", [0, 1, 2, 3])
 const filterRack = document.getElementById('filter-rack');
 const cutoff = new Knob(globalKnobIndex, filterRack, "Cut Off", [0, 25, 50, 75, 100]);
 const resonance = new Knob(globalKnobIndex, filterRack, "Resonance", [0, 25, 50, 75, 100]);
-
+const LFORack = document.getElementById('rate-rack');
+const smoothLFO = document.getElementById('LFO-rack');
+const frequencyMod = new Rate(1, LFORack, "Rate");
+const amplitudeMod = new Rate(1, LFORack, "Amp");
+const smooth = new Knob(globalKnobIndex, smoothLFO, "Smooth", [0, 25, 50, 75, 100]);
 
 document.querySelectorAll('.toggle-button').forEach(btn => {
     new ToggleButton(btn);

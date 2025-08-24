@@ -4,17 +4,38 @@ body {
 
 /* Rate container styling */
 .rate-container {
-    transform: scale(0.20); 
+    transform: scale(0.3); 
     transform-origin: center;
-    margin: -60px; 
-    width: 800px; 
+    margin: -3rem;
 }
 
-/* Adjust margins for horizontal layout on larger screens */
-@media (min-width: 768px) {
-    .rate-container {
-        margin: -80px -40px; /* Adjust for smaller scale and horizontal spacing */
-    }
+#rate-rack {
+    width: 10.5rem;
+    transform: translateY(-0.35rem) translateX(-7.5rem);
+    display: flex;
+    flex-direction: column;
+}
+
+#LFO-rack {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.rate-component-template {
+    display: flex;
+    flex-direction: row;
+}
+
+.rate-title {
+    height: 0;
+    transform: translateX(-16.5rem) translateY(3.5rem) rotate(-90deg);
+}
+
+.rate-control-area {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 /* Prevents text selection during interaction */
@@ -39,52 +60,44 @@ body {
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Slider styling */
 .rate-slider {
-    -webkit-appearance: none;
-    -moz-appearance: none;
     appearance: none;
-    height: 8px;
-    background: #374151;
-    border-radius: 4px;
-    outline: none;
-    transition: background 0.15s ease;
+    width: 120px;
+    height: 10px;
+    background: transparent;
 }
 
 .rate-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
-    background: #6b7280;
-    border: 2px solid #374151;
+    width: 32px;
+    height: 32px;
+    background: black;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.15s ease;
+    margin-top: -14px;
+    margin-left: -14px;
 }
 
 .rate-slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    background: #6b7280;
-    border: 2px solid #374151;
+    width: 32px;
+    height: 32px;
+    background: black;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.15s ease;
 }
 
-.rate-slider:hover::-webkit-slider-thumb {
-    background: #9ca3af;
-    transform: scale(1.1);
-}
+.rate-slider::-webkit-slider-runnable-track {
+    height: 4px;
+    background: black;
+    }
 
-.rate-slider:hover::-moz-range-thumb {
-    background: #9ca3af;
-    transform: scale(1.1);
+.rate-slider::-moz-range-track {
+    height: 4px;
+    background: black;
 }
 
 /* Hides slider when in mult mode */
-.rate-container.mult-mode .rate-slider-container {
+.rate-container.mult-mode {
     display: none;
 }
 

@@ -1,6 +1,7 @@
 export class Rate {
-    constructor(id, parentElement, initialFreq = 0) {
+    constructor(id, parentElement, title ,initialFreq = 0) {
         this.id = id;
+        this.title = title;
         this.frequency = initialFreq;
         this.numerator = 1;
         this.denominator = 1;
@@ -20,6 +21,10 @@ export class Rate {
             this.element = template.cloneNode(true);
             this.element.id = `rate-component-${this.id}`;
             this.element.style.display = 'block';
+        }
+
+        if (this.title == "Amp"){
+            this.element.querySelector("#HertzLabel").remove();
         }
 
         // Get references to all interactive elements
@@ -43,6 +48,7 @@ export class Rate {
         if (this.parentElement) {
             this.parentElement.appendChild(this.element);
         }
+        this.element.querySelector('.rate-title').textContent = this.title;
     }
 
     attachEventListeners() {
