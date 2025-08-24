@@ -1,21 +1,21 @@
 <html>
 
 <head>
-    <title>Virtual Synth</title>
+    <title>Online Synthesizer</title>
     <link rel="stylesheet" href="components/knob.css">
     <link rel="stylesheet" href="components/volume.css">
     <link rel="stylesheet" href="components/toggle-button.css">
     <link rel="stylesheet" href="components/oscillator.css">
-    <link rel="stylesheet" href="components/envelope.css">
     <link rel="stylesheet" href="components/general.css">
+    <link rel="stylesheet" href="components/open-sample.css">
+    <link rel="stylesheet" href="components/waveform.css">
+    <link rel="stylesheet" href="components/freq-slider.css">
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="components/open-sample.css">
-    <link rel="stylesheet" href="components/waveform.css">
-    <link rel="stylesheet" href="components/freq-slider.css">
+    <script src="https://cdn.jsdelivr.net/npm/webmidi@latest/dist/iife/webmidi.iife.js"></script>
 </head>
 
 <body class="bg-gray-100 justify-center min-h-screen">
@@ -38,9 +38,8 @@
                     </select>
                 </div>
     
-            <!-- Oscillator On/Off Button -->
             <div class="oscillator-power-toggle">
-                <button class="power-button" id="oscillatorPower" data-type="OSC_POWER">
+                <button class="power-button active" id="oscillatorPower" data-type="OSC_POWER">
                     <img src="icons/on-button-icon-vector.png" alt="Power On" class="power-on-img">
                     <img src="icons/off-button-icon-vector.png" alt="Power Off" class="power-off-img">
                 </button>
@@ -160,20 +159,6 @@
     </div>
 
     <script type="module" data-main="js/main" src="warp.js"></script>
-
-    <!-- Script for OSC On/Off toggle button (Added in 08/22/2025)-->
-    <script>
-        const oscillatorPowerButton = document.getElementById('oscillatorPower');
-        if (oscillatorPowerButton) {
-            oscillatorPowerButton.addEventListener('click', function() {
-                this.classList.toggle('active');
-
-                const isOn = this.classList.contains('active');
-                console.log('Oscillator is', isOn ? 'ON' : 'OFF');
-            });
-        }
-    </script>
-
 </body>
 
 </html>

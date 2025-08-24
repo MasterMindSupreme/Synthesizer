@@ -1066,7 +1066,6 @@ require(["main"], function(main) {
         const res = await fetch(`/samples/${fileName}`);
         const arrayBuffer = await res.arrayBuffer();
         var sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        console.log("Loaded sample:", fileName);
         sampleSelect.options[0].textContent = "Choose a preset";
         let pitch = await fetch("/pitch", {
             method: 'POST',

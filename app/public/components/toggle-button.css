@@ -14,6 +14,11 @@
     color: #333;
     user-select: none;
     border-radius: 0.35rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.toggle-button:nth-child(3n) {
+    margin-right: 0rem;
 }
 
 .toggle-button:hover {
@@ -30,7 +35,7 @@
 .button-container {
     display: grid;
     grid-template-columns: repeat(3, 0.001fr); 
-    gap: 0rem 0.5rem;
+    /* gap: 0.35rem; */
     margin: 0.5rem;
     margin-top: 0.75rem;
 }

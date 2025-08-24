@@ -29,7 +29,9 @@ const attack = new Knob(globalKnobIndex, envelopeRack, "Attack", [0, 1, 2, 3]);
 const decay = new Knob(globalKnobIndex, envelopeRack, "Decay", [0, 1, 2, 3]);
 const sustain = new Knob(globalKnobIndex, envelopeRack, "Sustain", [0, 25, 50, 75, 100]);
 const release = new Knob(globalKnobIndex, envelopeRack, "Release", [0, 1, 2, 3]);
-
+const filterRack = document.getElementById('filter-rack');
+const cutoff = new Knob(globalKnobIndex, filterRack, "Cut Off", [0, 25, 50, 75, 100]);
+const resonance = new Knob(globalKnobIndex, filterRack, "Resonance", [0, 25, 50, 75, 100]);
 
 
 document.querySelectorAll('.toggle-button').forEach(btn => {
@@ -83,7 +85,7 @@ function listenToKeys(callback) {
   });
 }
 
-var KeyToNoteMap = new Map([
+const KeyToNoteMap = new Map([
     ['z', 'C4'],
     ['s', 'C#4'],
     ['x', 'D4'],
@@ -117,7 +119,7 @@ var KeyToNoteMap = new Map([
     ['p', 'E6'],
 ]);
 
-var noteToMidiMap = new Map([
+const noteToMidiMap = new Map([
     // Octave -1
     ['C-1', 0],
     ['C#-1', 1],
@@ -293,6 +295,110 @@ document.addEventListener('DOMContentLoaded', () => {
             await setup();
             init = true;
         }
+    });
+
+    const voices = new Map();
+
+    async function loadSample(midi) {
+        const url = `OSC1 Samples/${midi}.wav`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            console.warn(`Missing sample: ${url}`);
+            return null;
+        }
+        const arrBuf = await res.arrayBuffer();
+        const audioBuf = await audioContext.decodeAudioData(arrBuf);
+        return audioBuf;
+    }
+
+    async function playSample(midi, velocity, id) {
+        const buf = await loadSample(midi + noteShift);
+        if (!buf) return;
+
+        let sampleFileName = document.getElementById("openSampleInput").value;
+        let OSC1Sample = buf;
+        waveformNote = midi + noteShift;
+        // updatePitch();
+        OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()});
+        document.getElementById("play").click();
+
+        // const src = audioContext.createBufferSource();
+        // src.buffer = buf;
+
+        // const gain = audioContext.createGain();
+        // gain.gain.value = Math.max(0, Math.min(1, velocity ?? 0.75));
+
+        // src.connect(gain).connect(audioContext.destination);
+        // src.start();
+
+        // voices.set(id, { src, gain });
+    }
+
+    function stopSample(id) {
+        const v = voices.get(id);
+        if (!v) return;
+        const now = audioContext.currentTime;
+        v.gain.gain.cancelScheduledValues(now);
+        v.gain.gain.setValueAtTime(v.gain.gain.value, now);
+        voices.delete(id);
+    }
+
+    function onMIDISuccess(midiAccess) {
+        const inputs = Array.from(midiAccess.inputs.values());
+        if (inputs.length === 0) {
+            alert("No MIDI inputs found.");
+            return;
+        }
+
+        // Build a numbered list of input names
+        const inputList = inputs.map((input, i) => `${i + 1}: ${input.name}`).join('\n');
+        const choice = prompt(`Select a MIDI input:\n${inputList}\nEnter the number:`);
+
+        const index = parseInt(choice) - 1;
+        const selectedInput = inputs[index];
+
+        if (selectedInput) {
+            alert(`🎹 Listening to: ${selectedInput.name}`);
+        } else {
+            alert("Invalid selection.");
+        }
+        return index;
+    }
+
+    function onMIDIFailure() {
+        alert("Failed to access MIDI devices.");
+    }
+
+    WebMidi.enable().then(async () => {
+        const index = await navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+        const input = WebMidi.inputs[index];
+        if (!input) {
+            return;
+        }
+
+        input.addListener("noteon", "all", async (e) => {
+            if (!init) {
+                await setup();
+                init = true;
+            }
+            if (audioContext.state === "suspended") await audioContext.resume();
+            const midi = e.note.number;
+            const vel = e.note.attack;
+            const ch = e.message.channel;
+            const id = `m:${ch}:${midi}`;
+            playSample(midi, vel, id).catch(console.error);
+        });
+
+        input.addListener("noteoff", "all", (e) => {
+            const midi = e.note.number;
+            const ch = e.message.channel;
+            stopSample(`m:${ch}:${midi}`);
+        });
+    }).catch(err => alert(err));
+
+    const oscillatorPowerButton = document.getElementById('oscillatorPower');
+    oscillatorPowerButton.addEventListener('click', function() {
+        this.classList.toggle('active');
     });
 
     const waveformDropdown = document.getElementById("waveformDropdown");

@@ -30,6 +30,10 @@ class OSCProcessor extends AudioWorkletProcessor {
         this.waveType = "triangle";
         this.fileName = "";
         this.pushedSamples = false;
+        this.samples = [];
+        this.inputSamples = [];
+        this.sampleIndex = [];
+        this.maxSamples = [];
         this.port.onmessage = (event) => {
             if (event.data.sampleRate) {
                 this.sampleRate = event.data.sampleRate;
@@ -40,8 +44,10 @@ class OSCProcessor extends AudioWorkletProcessor {
                 this.sampled = false;
             }
             if (event.data.command === "setSamples"){
-                this.index = 0;
-                this.samples = event.data.samples;
+                this.samples = [];
+                this.inputSamples.push(event.data.samples);
+                this.maxSamples.push(event.data.samples.length);
+                this.sampleIndex.push(this.index);
                 this.sampled = true;
                 this.fileName = event.data.fileName;
                 this.pushedSamples = false;
@@ -56,7 +62,6 @@ class OSCProcessor extends AudioWorkletProcessor {
                 this.waveType = "square";
             }
         };
-        this.samples = [];
     }
 
     process(inputs, outputs, parameters) {
@@ -70,10 +75,23 @@ class OSCProcessor extends AudioWorkletProcessor {
         for (let i = 0; i < output[0].length; i++) {
             const currentFrequency = frequency.length === 1 ? frequency[0] : frequency[i];
             const currentAmplitude = amplitude.length === 1 ? amplitude[0] : amplitude[i];
-            let sample;
             for (let channel = 0; channel < output.length; channel++) {
-                if (this.sampled) {
-                    output[channel][i] = currentAmplitude * (input1[0] == null ? this.samples[this.index] : (this.samples[Math.floor(this.index)]*(1 - this.index % 1) + this.samples[Math.ceil(this.index)]*(this.index % 1)));
+                let sample = 0;
+                if (this.sampled && this.inputSamples.length > 0) {
+                    for (let j = 0;j < this.inputSamples.length;j++){
+                        const index = this.index - this.sampleIndex[j];
+                        if (index >= this.inputSamples[j].length) {
+                            continue;
+                        }
+                        sample += currentAmplitude * (input1[0] == null ? this.inputSamples[j][index] : (this.inputSamples[j][Math.floor(index)]*(1 - index % 1) + this.inputSamples[j][Math.ceil(index)]*(index % 1)));
+                    }
+                    output[channel][i] = sample;
+                    if (this.sampleIndex[this.sampleIndex.length - 1] + this.inputSamples[this.inputSamples.length - 1].length <= this.index) {
+                        this.inputSamples = [];
+                        this.maxSamples = [];
+                        this.sampleIndex = [];
+                        this.index = 0;
+                    }
                 } else {
                     this.phase += (currentFrequency * hertz) * (input1[channel] == null ? 1 : input1[channel][i]);
                     let sharp = 0.5;
@@ -105,9 +123,11 @@ class OSCProcessor extends AudioWorkletProcessor {
                     } else if (!this.pushedSamples) {
                         this.samples.push(sample);
                     }
-                } else if (this.index >= this.samples.length && !this.pushedSamples){
+                } else if (this.samples.length == 1000 && !this.pushedSamples){
                     this.port.postMessage([this.samples, this.fileName]);
                     this.pushedSamples = true;
+                } else if (this.samples.length <= 1000) {
+                    this.samples.push(sample);
                 }
             }
             if (this.phase >= 2 * Math.PI) {
