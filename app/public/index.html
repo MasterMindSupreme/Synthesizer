@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="components/waveform.css">
     <link rel="stylesheet" href="components/rate-comp.css">
     <link rel="stylesheet" href="components/freq-slider.css">
+    <link rel="stylesheet" href="components/oscillator-dropdown.css">
     <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -264,6 +265,17 @@
         <!-- play button -->
         <button id="playSampleBtn" class="play-btn" disabled>▶ Play</button>
     </div>
+
+    <!-- Oscillator type dropdown -->
+    <div class="osc-header">
+        <span class="osc-title">OSC 1</span>
+        <select id="osc1Type" class="osc-dropdown" aria-label="Oscillator 1 type">
+            <option value="sample" selected>Sample</option>
+            <option value="waveform">Waveform</option>
+            <option value="wavetable">Wavetable</option>
+        </select>
+    </div>
+    <script type="module" src="components/oscillator-dropdown.js"></script>
 
     <script type="module" data-main="js/main" src="warp.js"></script>
 </body>

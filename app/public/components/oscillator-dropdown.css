@@ -1,0 +1,23 @@
+.osc-dropdown {
+    border: 2px solid #000000;
+    border-radius: 100px;
+    background-color: #f9f9f9;
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.osc-dropdown:hover {
+    background-color: #eee;
+}
+
+.osc-dropdown::after {
+    font-size: 12px;
+    color: #555;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
