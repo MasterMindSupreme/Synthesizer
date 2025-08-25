@@ -6,14 +6,6 @@
     margin: 0.25rem;
 }
 
-#waveformDropdown {
-    background-color: #ffffff00;
-}
-
-#waveformDropdown option {
-    color: #000;
-}
-
 .oscillator-power-toggle {
     position: absolute;
     top: 10px;

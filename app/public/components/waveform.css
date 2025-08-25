@@ -32,3 +32,11 @@
     height: 2px;
     background: white;
 }
+
+.wf-dropdown {
+    background-color: #ffffff00;
+}
+
+.wf-dropdown option {
+    color: #000;
+}

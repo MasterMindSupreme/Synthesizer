@@ -24,8 +24,6 @@
     <button id="play">
         play
     </button>
-    <!-- Temporary input element with temporary values for testing the initial sound environment -->
-    <input id="freq" type="range" min="4" max="7040" value="880" class="freq-slider">
     <main>
         <div style="display: flex; align-items: start;">
             <div id="oscillator">
@@ -68,13 +66,30 @@
                 </div>
             </div>
             <div id="LFO">
-                <canvas id="LFOView" width="270px" height="100px"></canvas>
-                <fieldset class="border-2 border-black w-[20] h-[130]">
-                    <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">LFO</legend>
-                    <div id="LFO-rack" class="flex flex-row">
-                        <div id="rate-rack"></div>
+                <div class="waveform">
+                    <label id="waveformLabelLeft" class="wf-left">Sine</label>
+                    <input type="range" id="LFOWaveformSlider" min="0" max="100" value="0" class="wf-slider">
+                    <select id="LFOWaveformDropdown" class="wf-dropdown">
+                        <option value="triangle">Triangle</option>
+                        <option value="square">Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                    </select>
+                </div>
+                <canvas id="LFOView" width="420px" height="100px"></canvas>
+                <div style="display: flex; align-items: start;">
+                    <fieldset class="border-2 border-black w-[20] h-[130]">
+                        <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">LFO</legend>
+                        <div id="LFO-rack" class="flex flex-row">
+                            <div id="rate-rack"></div>
+                        </div>
+                    </fieldset>
+                    <div id="LFOTracking"></div>
+                    <div class="button-container flex flex-col -mr-1 mb-0">
+                        <div class="toggle-button" data-type="LFO1">LFO 1</div>
+                        <div class="toggle-button" data-type="LFO2">LFO 2</div>
+                        <div class="toggle-button" data-type="LFO3">LFO 3</div>
                     </div>
-                </fieldset>
+                </div>
             </div>
         </div>
         <div style="display: flex; align-items: start;">
@@ -86,7 +101,7 @@
                     <div id="envelope-rack" class="flex flex-col items-center md:flex-row"></div>
                 </fieldset>
             </div>
-<div id="filter">
+            <div id="filter">
                 <canvas id="filterView" width="390px" height="100px"></canvas>
                 <div style="display: flex; align-items: start;">
                     <fieldset class="border-2 border-black w-[20] h-[130]">
@@ -94,6 +109,7 @@
 
                         <div id="filter-rack" class="flex flex-col items-center md:flex-row"></div>
                     </fieldset>
+                    <div id="filterTracking"></div>
                     <div class="button-container">
                         <div class="toggle-button" data-type="LP1">LP 1</div>
                         <div class="toggle-button" data-type="BP1">BP 1</div>
@@ -229,7 +245,7 @@
 
         <div class="rate-slider-container mt-2">
             <div class="flex items-center space-x-4">
-                <input type="range" class="rate-slider flex-1" min="0" max="100" value="0" step="0.01">
+                <input type="range" class="rate-slider flex-1" min="0" max="100" value="0" step="0.001">
             </div>
         </div>
     </div>

@@ -19,12 +19,13 @@ let LFO1;
 let ENV1;
 let Filter1;
 let currentOSC = 1;
+let currentLFO = 1;
 
 const knobRack = document.getElementById('tune-rack');
 const octaveKnob = new Knob(globalKnobIndex, knobRack, "Octave", [-2, -1, 0, 1, 2]);
 const semitoneKnob = new Knob(globalKnobIndex, knobRack, "Semitone", [-12, -6, 0, 6, 12]);
 const fineKnob = new Knob(globalKnobIndex, knobRack, "Fine", [-100, -50, 0, 50, 100]);
-const volumeSlider = new Volume(globalVolumeIndex, document.getElementById("OSCVolume"));
+const volumeSlider = new Volume(globalVolumeIndex, document.getElementById("OSCVolume"), "Volume");
 const envelopeRack = document.getElementById('envelope-rack');
 const attack = new Knob(globalKnobIndex, envelopeRack, "Attack", [0, 1, 2, 3]);
 const decay = new Knob(globalKnobIndex, envelopeRack, "Decay", [0, 1, 2, 3]);
@@ -33,11 +34,14 @@ const release = new Knob(globalKnobIndex, envelopeRack, "Release", [0, 1, 2, 3])
 const filterRack = document.getElementById('filter-rack');
 const cutoff = new Knob(globalKnobIndex, filterRack, "Cut Off", [0, 25, 50, 75, 100]);
 const resonance = new Knob(globalKnobIndex, filterRack, "Resonance", [0, 25, 50, 75, 100]);
+const keyTracking = new Volume(globalVolumeIndex, document.getElementById("filterTracking"), "Tracking");
 const LFORack = document.getElementById('rate-rack');
 const smoothLFO = document.getElementById('LFO-rack');
 const frequencyMod = new Rate(1, LFORack, "Rate");
 const amplitudeMod = new Rate(1, LFORack, "Amp");
+const LFOKeyTracking = new Volume(globalVolumeIndex, document.getElementById("LFOTracking"), "Tracking");
 const smooth = new Knob(globalKnobIndex, smoothLFO, "Smooth", [0, 25, 50, 75, 100]);
+
 
 document.querySelectorAll('.toggle-button').forEach(btn => {
     new ToggleButton(btn);
@@ -285,12 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const devicePixelRatio = window.devicePixelRatio || 1;
     let canvasSet = false;
-    let canvasSet2 = false;
+    let canvasSet2 = false
+    let canvasSet3 = false;
 
     let samples = new Array(2000).fill(0);
     let envelopeValues = [attack.inputEl.value, decay.inputEl.value, sustain.inputEl.value, release.inputEl.value];
     drawWaveForm(samples, document.getElementById("oscillatorView"), "");
     drawEnvelope(envelopeValues, document.getElementById("envelopeView"));
+    drawLFO(samples, document.getElementById("LFOView"), "");
 
     document.addEventListener('click', async () => {
         if (audioContext.state === 'suspended') {
@@ -411,9 +417,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWaveform(waveformDropdown.textContent.split("\n")[waveformDropdown.selectedIndex+1].toLocaleLowerCase().replace(/[^a-zA-Z0-9]/g, ""));
     });
 
+    const LFOWaveformDropdown = document.getElementById("LFOWaveformDropdown");
+    LFOWaveformDropdown.addEventListener("change", () => {
+        updateLFOWaveform(LFOWaveformDropdown.textContent.split("\n")[LFOWaveformDropdown.selectedIndex+1].toLocaleLowerCase().replace(/[^a-zA-Z0-9]/g, ""));
+    });
+
     const waveformSlider = document.getElementById("waveformSlider");
     waveformSlider.addEventListener("change", () => {
         updateWaveformSlider(waveformSlider.value / 100);
+    });
+
+    const LFOWaveformSlider = document.getElementById("LFOWaveformSlider");
+    LFOWaveformSlider.addEventListener("change", () => {
+        updateLFOWaveformSlider(LFOWaveformSlider.value / 100);
     });
 
     listenToKeys(async ({ key }) => {
@@ -439,7 +455,12 @@ document.addEventListener('DOMContentLoaded', () => {
         waveformNote = filename.split(".")[0];
         // updatePitch();
         OSC1.port.postMessage({command: "setSamples", samples: Array.from(OSC1Sample.getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()});
-        document.getElementById("play").click();
+        let LFOKT = LFO1.parameters.get("frequency");
+        let currentLFOKT = waveformNote - 60;
+        let LFOTracking = parseInt(LFOKeyTracking.label.textContent) / 100;
+        let originalFreq = frequencyMod.freqInput.value;
+        LFOKT.setValueAtTime((originalFreq*(Math.pow(2, (currentLFOKT)/12))*(LFOTracking) + originalFreq*(1-LFOTracking))/2, audioContext.currentTime);
+        // document.getElementById("play").click();
     });
 
     document.getElementById('play').addEventListener('click',
@@ -456,19 +477,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }), Filter1.connect(audioContext.destination);
             playing = !playing;
         });
-    document.getElementById('freq').addEventListener('input',
-        async () => {
+    async function frequencyModFunction () {
             if (!init) {
                 await setup();
                 init = true;
             }
-            let freq = document.getElementById("freq").value;
+            let freq = frequencyMod.freqInput.value;
+        
+            freq = freq * frequencyMod.numerator / frequencyMod.denominator;
             const modulatorFrequency = LFO1.parameters.get('frequency');
             modulatorFrequency.setValueAtTime(freq, audioContext.currentTime);
             OSC1.port.postMessage({
                 command: 'resetSamples'
             });
             Filter1.port.postMessage({
+                command: 'resetSamples'
+            });
+            LFO1.port.postMessage({
+                command: 'resetSamples'
+            });
+    }
+    frequencyMod.element.addEventListener('click', async () =>
+        await frequencyModFunction()
+        );
+    frequencyMod.element.addEventListener('input', async () =>
+        await frequencyModFunction()
+    );
+    amplitudeMod.element.addEventListener('input',
+        async () => {
+            if (!init) {
+                await setup();
+                init = true;
+            }
+            let amp = amplitudeMod.freqInput.value;
+            const modulatorFrequency = LFO1.parameters.get('amplitude');
+            modulatorFrequency.setValueAtTime(amp, audioContext.currentTime);
+            OSC1.port.postMessage({
+                command: 'resetSamples'
+            });
+            Filter1.port.postMessage({
+                command: 'resetSamples'
+            });
+            LFO1.port.postMessage({
                 command: 'resetSamples'
             });
         });
@@ -553,6 +603,32 @@ document.addEventListener('DOMContentLoaded', () => {
             
         }
     }
+    function updateLFOWaveformSlider (value) {
+        if (!LFO1) {
+            return;
+        }
+        let waveform;
+        if (currentLFO == 1) {
+            waveform = LFO1.parameters.get('waveform');
+        }
+        if (currentLFO == 2) {
+            waveform = LFO2.parameters.get('waveform');
+        }
+        if (currentLFO == 3) {
+            waveform = LFO3.parameters.get('waveform');
+        }
+        try {
+            waveform.setValueAtTime(value, audioContext.currentTime);
+            LFO1.port.postMessage({
+                command: 'resetSamples'
+            });
+            Filter1.port.postMessage({
+                command: 'resetSamples'
+            });
+        } catch {
+            
+        }
+    }
     function updateWaveform (waveform) {
         if (!OSC1) {
             return;
@@ -572,6 +648,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (currentOSC == 3) {
             OSC3.port.postMessage({
+                command: waveform
+            });
+        }
+        Filter1.port.postMessage({
+                command: 'resetSamples'
+        });
+    }
+    function updateLFOWaveform (waveform) {
+        if (!LFO1) {
+            return;
+        }
+        if (currentLFO == 1) {
+            LFO1.port.postMessage({
+                command: waveform
+            });
+            LFO1.port.postMessage({
+                command: "resetSamples"
+            });
+        }
+        if (currentLFO == 2) {
+            LFO2.port.postMessage({
+                command: waveform
+            });
+        }
+        if (currentLFO == 3) {
+            LFO3.port.postMessage({
                 command: waveform
             });
         }
@@ -646,6 +748,11 @@ document.addEventListener('DOMContentLoaded', () => {
             var oscillatorCanvas = document.getElementById("oscillatorView");
             drawWaveForm(samples, oscillatorCanvas, event.data[1]);
         };
+        LFO1.port.onmessage = (event) => {
+            const samples = event.data[0];
+            var LFOCanvas = document.getElementById("LFOView");
+            drawLFO(samples, LFOCanvas, event.data[1]);
+        };
         Filter1.port.onmessage = (event) => {
             const samples = event.data[0];
             var oscillatorCanvas = document.getElementById("oscillatorView");
@@ -669,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
         line.fillRect(0, 0, canvas.width, canvas.height)
         line.strokeStyle = '#FFFFFF';
         line.lineWidth = 0.4;
-        line.moveTo(0.5, canvas.height / 2 * 1 / devicePixelRatio);
+        line.moveTo(-0.5, canvas.height / 2 * 1 / devicePixelRatio);
         for (let i = 0; i < samples.length; i++) {
             line.lineTo(i, canvas.height / 2 * (1 + samples[i]) * 1 / devicePixelRatio);
         }
@@ -709,5 +816,31 @@ document.addEventListener('DOMContentLoaded', () => {
         line.arc((values[1] + values[0])*length + 1, (canvas.height - canvas.height*values[2]/100) * 1 / devicePixelRatio, 3.5, 0, Math.PI * 2);
         line.fillStyle = '#FFFFFF';
         line.fill();
+    }
+    function drawLFO(samples, canvas, sampleName) {
+        var line = canvas.getContext("2d");
+        canvas.width = canvas.width;
+        if (!canvasSet3) {
+            canvas.style.width = `${canvas.width}px`;
+            canvas.style.height = `${canvas.height}px`;
+            canvas.width = canvas.clientWidth * devicePixelRatio;
+            canvas.height = canvas.clientHeight * devicePixelRatio;
+            canvasSet3 = true;
+        }
+        line.scale(devicePixelRatio, devicePixelRatio);
+        line.fillStyle = "#000000";
+        line.fillRect(0, 0, canvas.width, canvas.height)
+        line.strokeStyle = '#FFFFFF';
+        line.lineWidth = 0.4;
+        line.moveTo(-0.5, canvas.height / 2 * 1 / devicePixelRatio);
+        for (let i = 0; i < samples.length; i++) {
+            line.lineTo(i, canvas.height / 2 * (5 + samples[i] - 1) / 5 * 1 / devicePixelRatio);
+        }
+        line.stroke();
+        line.font = "20px Arial";
+        line.fillStyle = "white";
+        line.textAlign = "left";
+        line.textBaseline = "top";
+        line.fillText(sampleName, 0, 0);
     }
 });

@@ -7,7 +7,7 @@ export class Rate {
         this.denominator = 1;
         this.isMultMode = false;
         this.parentElement = parentElement;
-        
+        this.referenceFreq = initialFreq;
         this.createComponent();
         this.attachEventListeners();
     }
@@ -49,6 +49,9 @@ export class Rate {
             this.parentElement.appendChild(this.element);
         }
         this.element.querySelector('.rate-title').textContent = this.title;
+
+        this.freqInput.value = Math.round(Math.pow(2, this.slider.value));
+
     }
 
     attachEventListeners() {
@@ -68,6 +71,11 @@ export class Rate {
         this.slider.addEventListener('input', (e) => {
             this.frequency = parseFloat(e.target.value);
             this.freqInput.value = this.frequency;
+            const minLogValue = -3;
+            const maxLogValue = 14.5;
+            const mappedLogValue = (this.freqInput.value / 100) * (maxLogValue - minLogValue) + minLogValue;
+            const actualValue = Math.pow(this.title == "Amp" ? 1.75 : 2, mappedLogValue);
+            this.freqInput.value = Math.round(actualValue * 100) / (this.title == "Amp" ? 500 : 100) ;
             this.onValueChange();
         });
 
@@ -75,36 +83,42 @@ export class Rate {
         this.numeratorInput.addEventListener('input', (e) => {
             this.numerator = Math.max(1, parseInt(e.target.value) || 1);
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         this.numUp.addEventListener('click', () => {
             this.numerator++;
             this.numeratorInput.value = this.numerator;
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         this.numDown.addEventListener('click', () => {
             this.numerator = Math.max(1, this.numerator - 1);
             this.numeratorInput.value = this.numerator;
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         // Denominator controls
         this.denominatorInput.addEventListener('input', (e) => {
             this.denominator = Math.max(1, parseInt(e.target.value) || 1);
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         this.denomUp.addEventListener('click', () => {
             this.denominator++;
             this.denominatorInput.value = this.denominator;
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         this.denomDown.addEventListener('click', () => {
             this.denominator = Math.max(1, this.denominator - 1);
             this.denominatorInput.value = this.denominator;
             this.onValueChange();
+            this.setValue(this.getValue());
         });
 
         // Keyboard shortcuts for arrow keys when inputs are focused
@@ -135,6 +149,7 @@ export class Rate {
         if (this.isMultMode) {
             this.element.classList.add('mult-mode');
             this.multToggle.classList.add('active');
+            this.referenceFreq = this.frequency;
         } else {
             this.element.classList.remove('mult-mode');
             this.multToggle.classList.remove('active');
@@ -167,6 +182,8 @@ export class Rate {
                 this.denominator = value.denominator || 1;
                 this.numeratorInput.value = this.numerator;
                 this.denominatorInput.value = this.denominator;
+                this.frequency = this.referenceFreq * this.numerator / this.denominator;
+                this.freqInput.value = this.frequency;
                 this.element.classList.add('mult-mode');
                 this.multToggle.classList.add('active');
             } else {
