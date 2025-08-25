@@ -1,0 +1,28 @@
+.pill-select {
+    border: 2px solid #000000;
+    border-radius: 100px;
+    background-color: #f9f9f9;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+
+    /* space for custom arrow */
+    padding-right: 12px;
+    position: relative;
+}
+
+.pill-select:hover {
+    background-color: #eee;
+}
+
+.pill-select::after {
+    content: "▼";
+    font-size: 12px;
+    color: #555;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
