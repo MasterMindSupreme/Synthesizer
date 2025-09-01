@@ -1,4 +1,4 @@
-import { audioContext } from "./play.js";
+import { audioContext, currentOSC } from "./play.js";
 
 /*
  RequireJS 2.1.8 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
@@ -1029,7 +1029,7 @@ async function save(samples, noteAdjust) {
     const numChannels = 1;
     const filename = `${parseInt(noteAdjust)}.wav`;
     const waveBuffer = saveWavFile(audioData, sampleRate, numChannels);
-    await fetch('/osc-samples' + '?filename=' + filename + '&osc=1', {
+    await fetch('/osc-samples' + '?filename=' + filename + '&osc=' + currentOSC, {
         method: 'POST',
         headers: {
             'Content-Type': 'text/plain'
@@ -1086,10 +1086,8 @@ require(["main"], function(main) {
         for (let i = - noteAdjust; i < 128 - noteAdjust; i++) {
             await save(warp.setup.init(i - 69, sampleBuffer), Math.round(i + noteAdjust));
         }
-        playSampleBtn.disabled = false;
     } catch (err) {
         console.error("Sample load error:", err);
-        playSampleBtn.disabled = true;
     }
     });
 

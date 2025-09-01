@@ -5,7 +5,6 @@ export class ToggleButton {
         this.isActive = false;
         this.type = element.dataset.type || 'ENV';
         this.number = this.extractNumber(element.textContent) || 1;
-        
         this.element.addEventListener('click', () => this.toggle());
     }
 
@@ -17,7 +16,6 @@ export class ToggleButton {
                 if (buttons[i].textContent.split(" ")[0] == toggleChoice && buttons[i].textContent != this.element.textContent) {
                     buttons[i].isActive = false;
                     buttons[i].classList.toggle('active', buttons[i].isActive);
-                    // buttons[i].element.onToggle();
                 }
                 if (buttons[i].textContent.split(" ")[0].substring(1) == "P" && this.element.textContent.split(" ")[0].substring(1) == "P"){
                     buttons[i].isActive = false;
@@ -29,7 +27,6 @@ export class ToggleButton {
             this.isActive = !this.isActive;
         }
         this.updateAppearance();
-        // this.onToggle();
     }
 
     updateAppearance() {

@@ -69,7 +69,7 @@ export class Knob {
         this.inputEl.min = this.config.min;
         this.inputEl.max = this.config.max;
         this.inputEl.step = 1;
-        if (this.config.max == 3) {
+        if (this.config.max == 3 || this.config.title == "Cut Off" || this.config.title == "Resonance" || this.config.title == "Phase") {
             this.inputEl.step = 0.05;
         }
         // Generate and position labels
@@ -119,7 +119,7 @@ export class Knob {
         this.dialEl.style.transform = `rotate(${angle}deg)`;
 
         // Update input field
-        if (this.inputEl.max == 3) {
+        if (this.config.max == 3 || this.config.title == "Cut Off" || this.config.title == "Resonance" || this.config.title == "Phase") {
             this.inputEl.value = clampedValue.toFixed(2);
         } else {
             this.inputEl.value = clampedValue.toFixed(0);

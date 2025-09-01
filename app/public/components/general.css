@@ -1,29 +1,31 @@
 #oscillator {
     background-color: rgb(138, 138, 138);
     border-radius: 0.5rem;
+    border-top-left-radius: 0rem;
     padding: 0.5rem;
     padding-bottom: 0rem;
-    padding-right: 0.25rem;
+    padding-right: 0rem;
     width: max-content;
     position: relative;
 }
 
 #envelope {
-    margin-top: 0.5rem;
     background-color: rgb(138, 138, 138);
     border-radius: 0.5rem;
+    border-top-left-radius: 0rem;
     padding: 0.5rem;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.875rem;
     width: max-content;
 }
 
 #filter {
     background-color: rgb(138, 138, 138);
     border-radius: 0.5rem;
+    border-top-left-radius: 0rem;
     padding: 0rem 0.5rem;
-    padding-bottom: 0rem;
-    margin-top: 0.5rem;
     margin-left: 0.5rem;
+    padding-top: 0.5rem;
+    padding-right: 0rem;
     width: max-content;
 }
 
@@ -31,12 +33,83 @@
     background-color: rgb(138, 138, 138);
     border-radius: 0.5rem;
     padding: 0.5rem;
-    padding-bottom: 0.75rem;
+    border-top-left-radius: 0rem;
+    padding-bottom: 0rem;
     margin-left: 0.5rem;
-    padding-bottom: 0.3rem;
     width: max-content;
+}
+
+.invisible {
+    display: none;
 }
 
 canvas {
     border-radius: 0.3rem;
+}
+
+option {
+    color: black;
+}
+.osc-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 2.5rem;
+    background-color: #404040;
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    width: 12rem;
+    padding: 0.5rem 0.25rem;
+}
+
+.osc-header-active {
+    background-color: rgb(138, 138, 138);
+}
+
+.lfo-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 2.5rem;
+    background-color: hsl(0, 0%, 25%);
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    width: max-content;
+    padding: 0.5rem 0.25rem;
+}
+
+.lfo-header-active {
+    background-color: rgb(138, 138, 138);
+}
+
+.env-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 2.5rem;
+    background-color: hsl(0, 0%, 25%);
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    width: max-content;
+    padding: 0.5rem 0.25rem;
+}
+
+.env-header-active {
+    background-color: rgb(138, 138, 138);
+}
+
+.filter-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    height: 2.5rem;
+    background-color: hsl(0, 0%, 25%);
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    width: max-content;
+    padding: 0.5rem 0.25rem;
+}
+
+.filter-header-active {
+    background-color: rgb(138, 138, 138);
 }

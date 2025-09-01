@@ -1,7 +1,7 @@
 .preset-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0rem;
 }
 
 .folder-btn {

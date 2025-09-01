@@ -20,7 +20,7 @@ class ENVProcessor extends AudioWorkletProcessor {
             },
             {
                 name: 'release',
-                defaultValue: 0.5,
+                defaultValue: 1.0,
                 minValue: 0,
                 maxValue: 10,
             },
@@ -63,6 +63,7 @@ class ENVProcessor extends AudioWorkletProcessor {
             const currentRelease = release.length === 1 ? release[0] : release[i]; 
             if (this.index == 0) {
                 this.sample = 0;
+                this.port.postMessage([attack, decay, sustain, release]);
             }
             for (let channel = 0; channel < output.length; channel++) {
                 if (this.index < this.sampleRate * currentAttack) {
