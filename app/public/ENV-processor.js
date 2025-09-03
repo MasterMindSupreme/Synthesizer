@@ -20,7 +20,7 @@ class ENVProcessor extends AudioWorkletProcessor {
             },
             {
                 name: 'release',
-                defaultValue: 1.0,
+                defaultValue: 0.5,
                 minValue: 0,
                 maxValue: 10,
             },
@@ -69,7 +69,7 @@ class ENVProcessor extends AudioWorkletProcessor {
                 if (this.index < this.sampleRate * currentAttack) {
                     this.sample += 1 / (this.sampleRate * currentAttack);
                 } else if (this.index < this.sampleRate * (currentAttack + currentDecay)) {
-                    this.sample = 1 - (this.index - this.sampleRate * (currentAttack)) / (this.sampleRate * currentDecay) * (1 - currentSustain);
+                    this.sample = 1 - (1 - currentSustain) * ((this.index - currentAttack * this.sampleRate) / (currentDecay * this.sampleRate));
                 } else if (this.sustainOn) {
                     this.index--;
                 } else if (this.index < this.sampleRate * (currentAttack + currentDecay + currentRelease)) {

@@ -1,15 +1,8 @@
-import {
-    Knob,
-    globalKnobIndex
-} from './components/knob.js';
-import {
-    Volume,
-    globalVolumeIndex
-} from './components/volume.js';
-import {
-    ToggleButton
-} from './components/toggle-button.js';
+import { Knob, globalKnobIndex } from './components/knob.js';
+import { Volume, globalVolumeIndex } from './components/volume.js';
+import { ToggleButton } from './components/toggle-button.js';
 import { Rate } from './components/rate-comp.js';
+import * as P from './parts.js';
 
 let init = false;
 let playing = false;
@@ -35,6 +28,10 @@ export let currentOSC = 1;
 let currentLFO = 1;
 let currentENV = 1;
 let currentFilter = 1;
+const oscillators = [new P.Oscillator(), new P.Oscillator(), new P.Oscillator()];
+const LFOs = [new P.LFO(), new P.LFO(), new P.LFO()];
+const envelopes = [new P.Envelope(), new P.Envelope(), new P.Envelope()];
+const filters = [new P.Filter(), new P.Filter(), new P.Filter()];
 
 const knobRack = document.getElementById('tune-rack');
 const octaveKnob = new Knob(globalKnobIndex, knobRack, "Octave", [-2, -1, 0, 1, 2]);
@@ -65,18 +62,6 @@ export let selectedSampleBuffer = null;
 let sampleBuffer = null;
 let sampleSource = null;
 let sampleAudioContext;
-
-
-// // play sample, cut off after 5 seconds
-// playSampleBtn.addEventListener('click', () => {
-//   if (!sampleBuffer || !sampleAudioContext) return;
-
-//   sampleSource = sampleAudioContext.createBufferSource();
-//   sampleSource.buffer = sampleBuffer;
-//   sampleSource.connect(sampleAudioContext.destination);
-//   sampleSource.start();
-//   sampleSource.stop(sampleAudioContext.currentTime + 5);
-// });
 
 // fetch list of presets from server
 async function loadSampleList() {
@@ -296,7 +281,6 @@ const noteToMidiMap = new Map([
 let noteShift = 0;
 
 let waveformNote;
-
 document.addEventListener('DOMContentLoaded', () => {
 
     const devicePixelRatio = window.devicePixelRatio || 1;
@@ -327,30 +311,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
     var LFOTabs = document.getElementsByClassName("lfo-header");
 
+    var ENVTabs = document.getElementsByClassName("env-header");
+
+    var FilterTabs = document.getElementsByClassName("filter-header");
+
     for (let i = 0; i < LFOTabs.length;i++) {
         LFOTabs[i].addEventListener("click", () => {
             currentLFO = i + 1;
             for (let j = 0; j < LFOTabs.length;j++) {
                 LFOTabs[j].classList.remove("lfo-header-active");
             }
-            LFOTabs[i].classList.add("lfo-header-active")
+            LFOTabs[i].classList.add("lfo-header-active");
+            let LFO = LFOs[currentLFO - 1];
+            amplitudeMod.setValue(LFO.amplitude);
+            phaseKnob.updateKnob(LFO.phase);
+            frequencyMod.setValue(LFO.rate);
+            LFOKeyTracking.slider.value = LFO.tracking;
+            LFOKeyTracking.label.textContent = LFO.tracking + "%";
+            document.getElementById("LFOWaveformDropdown").value = LFO.waveType;
+            document.getElementById("LFOWaveformSlider").value = LFO.waveform;
+            try {
+                toggles[9].setState(LFO.toggles[0]);
+                toggles[10].setState(LFO.toggles[1]);
+                toggles[11].setState(LFO.toggles[2]);
+            } catch {}
         });
     }
     
     for (let i = 0; i < OSCTabs.length;i++) {
         OSCTabs[i].parentElement.addEventListener("click", () => {
             currentOSC = i + 1;
+            let OSC = oscillators[currentOSC - 1];
+            octaveKnob.updateKnob(OSC.octave);
+            semitoneKnob.updateKnob(OSC.semitone);
+            fineKnob.updateKnob(OSC.fine);
+            volumeSlider.slider.value = OSC.volume;
+            volumeSlider.label.textContent = OSC.volume + "%";
+            OSC.on ? document.getElementById("oscillatorPower").classList.add("active") : document.getElementById("oscillatorPower").classList.remove("active")
+            if (OSC.mode == "Sample") {
+                document.getElementById("preset-loader").classList.remove("invisible");
+                document.getElementById("waveform-loader").classList.add("invisible");
+            } else if (OSC.mode == "Waveform") {
+                document.getElementById("preset-loader").classList.add("invisible");
+                document.getElementById("waveform-loader").classList.remove("invisible");
+            }
+            document.getElementById("waveformDropdown").value = OSC.waveType;
+            document.getElementById("waveformSlider").value = OSC.waveform;
+            try {
+                for (let j = 0;j < 9;j++) {
+                    toggles[j].setState(OSC.toggles[j]);
+                }
+            } catch {}
         });
         OSCTabs[i].addEventListener("click", () => {
             if (OSCTabs[currentOSC - 1].value == "waveform") {
                 document.getElementById("preset-loader").classList.add("invisible");
                 document.getElementById("waveform-loader").classList.remove("invisible");
                 OSCList != null ? OSCList[currentOSC - 1].port.postMessage({sampled: false}): null;
-            } else {
+                oscillators[currentOSC - 1].mode = "Waveform";
+            } else if (OSCTabs[currentOSC - 1].value == "sample") {
                 document.getElementById("preset-loader").classList.remove("invisible");
                 document.getElementById("waveform-loader").classList.add("invisible");
                 OSCList != null ? OSCList[currentOSC - 1].port.postMessage({sampled: true}): null;
+                oscillators[currentOSC - 1].mode = "Sample";
             }
+        });
+    }
+
+    for (let i = 0; i < ENVTabs.length;i++) {
+        ENVTabs[i].addEventListener("click", () => {
+            currentENV = i + 1;
+            for (let j = 0; j < ENVTabs.length;j++) {
+                ENVTabs[j].classList.remove("env-header-active");
+            }
+            ENVTabs[i].classList.add("env-header-active");
+            let ENV = envelopes[currentENV - 1];
+            attack.updateKnob(ENV.attack);
+            decay.updateKnob(ENV.decay);
+            sustain.updateKnob(ENV.sustain);
+            release.updateKnob(ENV.release);
+        });
+    }
+
+    for (let i = 0; i < FilterTabs.length;i++) {
+        FilterTabs[i].addEventListener("click", () => {
+            currentFilter = i + 1;
+            for (let j = 0; j < FilterTabs.length;j++) {
+                FilterTabs[j].classList.remove("filter-header-active");
+            }
+            FilterTabs[i].classList.add("filter-header-active");
+            let Filter = filters[currentFilter - 1];
+            cutoff.updateKnob(Filter.cutoff);
+            resonance.updateKnob(Filter.resonance);
+            keyTracking.slider.value = Filter.tracking;
+            keyTracking.label.textContent = Filter.tracking + "%";
+            try {
+                toggles[12].setState(Filter.toggles[0]);
+                toggles[13].setState(Filter.toggles[1]);
+                toggles[14].setState(Filter.toggles[2]);
+            } catch {}
+            FilterChoice = Filter.toggles[0] ? 0 : Filter.toggles[1] ? 1 : Filter.toggles[2] ? 2 : null;
+            filterValues = [FilterChoice + 1,3,cutoff.inputEl.value];
+            drawFilter(filterValues, document.getElementById("filterView"));
         });
     }
 
@@ -359,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
             OSCList[currentOSC - 1].port.postMessage({
                 play: !document.getElementById("oscillatorPower").classList.contains("active"),
             });
+            oscillators[currentOSC - 1].on = !document.getElementById("oscillatorPower").classList.contains("active");
         }
     });
 
@@ -382,29 +445,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const buf3 = await loadSample(midi + noteShift, 3);
         let sampleFileName = document.getElementById("openSampleInput").value;
         waveformNote = midi + noteShift;
-        // updatePitch();
         const bufs = [buf1, buf2, buf3];
         for (let i = 0; i < OSCList.length;i++) {
-            if (OSCTabs[i].value == "sample") {
-                OSCList[i].port.postMessage({command: "setSamples", samples: Array.from(bufs[i].getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()});
-            }
-            else {
-                // updatePitch();
-                // document.getElementById("play").click();
-            }
+            try {
+                if (OSCTabs[i].value == "sample") {
+                    OSCList[i].port.postMessage({command: "setSamples", samples: Array.from(bufs[i].getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()});
+                }
+                else {
+                    waveformNote = midi - 60;
+                    currentOSC = i + 1;
+                    updatePitch();
+                }
+            } catch {}
         }
-
-
-        // const src = audioContext.createBufferSource();
-        // src.buffer = buf;
-
-        // const gain = audioContext.createGain();
-        // gain.gain.value = Math.max(0, Math.min(1, velocity ?? 0.75));
-
-        // src.connect(gain).connect(audioContext.destination);
-        // src.start();
-
-        // voices.set(id, { src, gain });
     }
 
     function stopSample(id) {
@@ -509,9 +562,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ENVList[i].port.postMessage({
                         command: 'resetIndex'
                     });
-                    // ENVList[i].port.postMessage({
-                    //     command: 'sustainOff'
-                    // });
                 }
                 const response = await fetch('/osc-sample' + '?filename=' + filename + '&osc=' + `${index+1}`, {
                     method: 'GET',
@@ -520,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 const rawBuffer = await response.arrayBuffer();
-                // let sampleFileName = document.getElementById("sampleSelect").options[document.getElementById("sampleSelect").selectedIndex].value;
                 let sampleFileName = document.getElementById("openSampleInput").value;
                 let OSCSample;
                 try {
@@ -528,39 +577,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch {
                     return;
                 }
-                // waveformNote = parseInt(filename.split(".")[0]);
-                // updatePitch();
                 OSC.port.postMessage({command: "setSamples", samples: Array.from(OSCSample.getChannelData(0)), fileName: sampleFileName.split("/").pop().split("\\").pop()})
-                // document.getElementById("play").click();
             }
             else {
-                // updatePitch();
-                // document.getElementById("play").click();
+                waveformNote = parseInt(filename.split(".")[0]) - 60;
+                updatePitch();
             }
         });
-        
-        // let LFOKT = LFO1.parameters.get("frequency");
-        // let currentLFOKT = waveformNote - 60;
-        // let LFOTracking = parseInt(LFOKeyTracking.label.textContent) / 100;
-        // let originalFreq = frequencyMod.freqInput.value;
-        // LFOKT.setValueAtTime((originalFreq*(Math.pow(2, (currentLFOKT)/12))*(LFOTracking) + originalFreq*(1-LFOTracking))/2, audioContext.currentTime);
-        // // document.getElementById("play").click();
     });
-
-    document.getElementById('play').addEventListener('click',
-        async () => {
-            if (!init) {
-                await setup();
-                init = true;
-            }
-            // ENV1.port.postMessage({
-            //     command: playing ? 'sustainOff' : 'sustainOn'
-            // });
-            // playing ? Filter1.disconnect(audioContext.destination) : ENV1.port.postMessage({
-            //     command: 'resetIndex'
-            // }), Filter1.connect(audioContext.destination);
-            playing = true; // !playing;
-        });
     async function frequencyModFunction () {
             if (!init) {
                 await setup();
@@ -576,11 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     command: 'resetSamples'
                 });
             });
-            FilterList.forEach((Filter, index) => {
-                Filter.port.postMessage({
-                    command: 'resetSamples'
-                });
-            });
+            LFOs[currentLFO - 1].rate = freq;
             LFOList[currentLFO - 1].port.postMessage({
                 command: 'resetSamples'
             });
@@ -606,11 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     command: 'resetSamples'
                 });
             });
-            FilterList.forEach((Filter, index) => {
-                Filter.port.postMessage({
-                    command: 'resetSamples'
-                });
-            });
+            LFOs[currentLFO - 1].amplitude = amp;
             LFOList[currentLFO - 1].port.postMessage({
                 command: 'resetSamples'
             });
@@ -640,63 +656,67 @@ document.addEventListener('DOMContentLoaded', () => {
             updateEnvelope();
         });
     resonance.inputEl.addEventListener('change', () => {
-        let resonanceVal = parseInt(resonance.inputEl.value);
+        let resonanceVal = parseFloat(resonance.inputEl.value) / 100;
         if (FilterList == undefined) {
             return;
         }
         let resonanceParam = FilterList[currentFilter - 1].parameters.get('resonance');
         try {
-            resonanceParam.setValueAtTime(resonanceVal / 100, audioContext.currentTime);
+            resonanceParam.setValueAtTime(resonanceVal, audioContext.currentTime);
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
             LFOList[currentLFO - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            FilterList[currentFilter - 1].port.postMessage({
-                command: 'resetSamples'
-            });
+            filters[currentFilter - 1].resonance = resonanceVal * 100;
         } catch {
             
         } 
     });
     phaseKnob.inputEl.addEventListener('change', () => {
-        let phaseVal = parseInt(phaseKnob.inputEl.value);
+        let phaseVal = parseFloat(phaseKnob.inputEl.value) / 100;
         if (LFOList == undefined) {
             return;
         }
         let phase = LFOList[currentLFO - 1].parameters.get('phase');
         try {
-            phase.setValueAtTime(phaseVal / 100, audioContext.currentTime);
+            phase.setValueAtTime(phaseVal, audioContext.currentTime);
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
             LFOList[currentLFO - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            FilterList[currentFilter - 1].port.postMessage({
-                command: 'resetSamples'
-            });
+            LFOs[currentLFO - 1].phase = phaseVal * 100;
         } catch {
             
         } 
         });
     cutoff.inputEl.addEventListener('change', () => {
-        let cutoffVal = parseInt(cutoff.inputEl.value);
+        let cutoffVal = parseFloat(cutoff.inputEl.value) / 100;
         if (FilterList == undefined) {
             return;
         }
         let alpha = FilterList[currentFilter - 1].parameters.get('alpha');
         try {
-            alpha.setValueAtTime(cutoffVal / 100, audioContext.currentTime);
+            alpha.setValueAtTime(cutoffVal, audioContext.currentTime);
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
             filterValues = [FilterChoice + 1,3,cutoff.inputEl.value];
             drawFilter(filterValues, document.getElementById("filterView"));
+            filters[currentFilter - 1].cutoff = cutoffVal * 100;
         } catch {
 
         }
+    });
+    LFOKeyTracking.slider.addEventListener('input', () => {
+        LFOs[currentLFO - 1].tracking = parseFloat(LFOKeyTracking.label.textContent.split("%")[0]);
+        updatePitch();
+    });
+    keyTracking.slider.addEventListener('input', () => {
+        filters[currentFilter - 1].tracking = parseFloat(keyTracking.label.textContent.split("%")[0]);
     });
     function updatePitch () {
         let octave = parseInt(octaveKnob.inputEl.value);
@@ -706,18 +726,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         let carrierFrequency = OSCList[currentOSC - 1].parameters.get('frequency');
-        noteShift = octave*12+semitone;
+        noteShift = octave*12+semitone+fine/100;
         try {
             carrierFrequency.setValueAtTime(440 * Math.pow(2, octave + semitone/12 + fine/12/100 + (waveformNote ?? 60 - 60)/12), audioContext.currentTime);
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            FilterList[currentFilter - 1].port.postMessage({
-                command: 'resetSamples'
-            });
-        } catch {
-            
-        }
+            oscillators[currentOSC - 1].octave = octave;
+            oscillators[currentOSC - 1].semitone = semitone;
+            oscillators[currentOSC - 1].fine = fine;
+            for (let i = 0;i < LFOList.length; i++) {
+                let LFOKT = LFOList[i].parameters.get("frequency");
+                let currentLFOKT = noteShift + waveformNote ?? 0;
+                let LFOTracking = LFOs[i].tracking / 100;
+                let originalFreq = LFOs[i].rate;
+                LFOKT.setValueAtTime((originalFreq*(Math.pow(2, (currentLFOKT)/12))*(LFOTracking) + originalFreq*(1-LFOTracking))/2, audioContext.currentTime);
+            }
+        } catch { }
     }
     function updateWaveformSlider (value) {
         if (OSCList == undefined) {
@@ -729,9 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            FilterList[currentFilter - 1].port.postMessage({
-                command: 'resetSamples'
-            });
+            oscillators[currentOSC - 1].waveform = value * 100;
         } catch {
             
         }
@@ -740,24 +763,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!LFO1) {
             return;
         }
-        let waveform;
-        if (currentLFO == 1) {
-            waveform = LFO1.parameters.get('waveform');
-        }
-        if (currentLFO == 2) {
-            waveform = LFO2.parameters.get('waveform');
-        }
-        if (currentLFO == 3) {
-            waveform = LFO3.parameters.get('waveform');
-        }
+        let waveform = LFOList[currentLFO - 1].parameters.get('waveform');
         try {
             waveform.setValueAtTime(value, audioContext.currentTime);
-            LFO1.port.postMessage({
+            LFOList[currentLFO - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            Filter1.port.postMessage({
-                command: 'resetSamples'
-            });
+            LFOs[currentLFO - 1].waveform = value * 100;
         } catch {
             
         }
@@ -772,58 +784,54 @@ document.addEventListener('DOMContentLoaded', () => {
         OSCList[currentOSC - 1].port.postMessage({
             command: "resetSamples"
         });
-        Filter1.port.postMessage({
-                command: 'resetSamples'
-        });
+        oscillators[currentOSC - 1].waveType = waveform;
     }
     function updateLFOWaveform (waveform) {
         if (!LFO1) {
             return;
         }
-        if (currentLFO == 1) {
-            LFO1.port.postMessage({
-                command: waveform
-            });
-            LFO1.port.postMessage({
-                command: "resetSamples"
-            });
-        }
-        if (currentLFO == 2) {
-            LFO2.port.postMessage({
-                command: waveform
-            });
-        }
-        if (currentLFO == 3) {
-            LFO3.port.postMessage({
-                command: waveform
-            });
-        }
-        Filter1.port.postMessage({
-                command: 'resetSamples'
+        LFOList[currentLFO - 1].port.postMessage({
+            command: waveform
         });
+        LFOList[currentLFO - 1].port.postMessage({
+            command: "resetSamples"
+        });
+        LFOs[currentLFO - 1].waveType = waveform;
     }
     function updateVolume () {
-        let volume = parseInt(volumeSlider.label.textContent.replace("%", ""));
+        let volume = parseInt(volumeSlider.label.textContent.replace("%", "")) / 100;
         if (!OSC1) {
             return;
         }
         let amplitude = OSCList[currentOSC - 1].parameters.get('amplitude');
         try {
-            amplitude.setValueAtTime(volume / 100, audioContext.currentTime);
+            amplitude.setValueAtTime(volume, audioContext.currentTime);
             OSCList[currentOSC - 1].port.postMessage({
                 command: 'resetSamples'
             });
-            FilterList[currentFilter - 1].port.postMessage({
-                command: 'resetSamples'
-            });
+            oscillators[currentOSC - 1].volume = volume * 100;
         } catch {
             
         }
     }
     function updateEnvelope() {
-        envelopeValues = [parseFloat(attack.inputEl.value), parseFloat(decay.inputEl.value), parseFloat(sustain.inputEl.value), parseFloat(release.inputEl.value)];
-        var envelopeCanvas = document.getElementById("envelopeView");
-        drawEnvelope(envelopeValues, envelopeCanvas);
+        if (ENVList != null) {
+            envelopeValues = [parseFloat(attack.inputEl.value), parseFloat(decay.inputEl.value), parseFloat(sustain.inputEl.value), parseFloat(release.inputEl.value)];
+            let attackParam = ENVList[currentENV - 1].parameters.get('attack');
+            let decayParam = ENVList[currentENV - 1].parameters.get('decay');
+            let sustainParam = ENVList[currentENV - 1].parameters.get('sustain');
+            let releaseParam = ENVList[currentENV - 1].parameters.get('release');
+            attackParam.setValueAtTime(envelopeValues[0], audioContext.currentTime);
+            decayParam.setValueAtTime(envelopeValues[1], audioContext.currentTime);
+            sustainParam.setValueAtTime(envelopeValues[2], audioContext.currentTime);
+            releaseParam.setValueAtTime(envelopeValues[3], audioContext.currentTime);
+            envelopes[currentENV - 1].attack = envelopeValues[0];
+            envelopes[currentENV - 1].decay = envelopeValues[1];
+            envelopes[currentENV - 1].sustain = envelopeValues[2];
+            envelopes[currentENV - 1].release = envelopeValues[3];
+            var envelopeCanvas = document.getElementById("envelopeView");
+            drawEnvelope(envelopeValues, envelopeCanvas);
+        }
     }
     async function setup() {
         await audioContext.audioWorklet.addModule('OSC-processor.js');
@@ -905,16 +913,27 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener("click", () => {
                 try {
                     if (index < 3) {
+                        let i = 0;
                         for (var ENV in ENVList) {
-                            ENV.disconnect(OSCList[currentOSC - 1]);
+                            try {
+                                ENV.disconnect(OSCList[currentOSC - 1]);
+                            } catch {}
+                            oscillators[currentOSC - 1].toggles[i] = false;
+                            i++;
                         }
                         toggles[index].isActive ? ENVList[index % 3].connect(OSCList[currentOSC - 1], 0, 3) : ENVList[index % 3].disconnect(OSCList[currentOSC - 1], 0, 3);
+                        oscillators[currentOSC - 1].toggles[index] = true;
                     } else if (index < 6) {
                         toggles[index].isActive ? LFOList[index % 3].connect(OSCList[currentOSC - 1], 0, index % 3) : LFOList[index % 3].disconnect(OSCList[currentOSC - 1], 0, index % 3);
+                        oscillators[currentOSC - 1].toggles[index] = toggles[index].isActive;
+                        OSCList[currentOSC - 1].port.postMessage({command: "resetSamples"});
                     } else if (index < 9) {
                         toggles[index].isActive ? (OSCList[currentOSC - 1].connect(FilterList[index % 3], 0, index % 3), FilterList[index % 3].connect(audioContext.destination)) : (OSCList[currentOSC - 1].disconnect(FilterList[index % 3], 0, index % 3), OSCList[currentOSC - 1].connect(audioContext.destination));
+                        oscillators[currentOSC - 1].toggles[index] = toggles[index].isActive;
                     } else if (index < 12) {
                         toggles[index].isActive ? (LFOList[index % 3].connect(LFOList[index % 3], 0, index % 3)) : (LFOList[index % 3].disconnect(LFOList[index % 3], 0, index % 3));
+                        LFOs[currentLFO - 1].toggles[index % 3] = toggles[index].isActive;
+                        LFOList[currentLFO - 1].port.postMessage({command: "resetSamples"});
                     } else if (index < 15) {
                         FilterChoice = index - 12;
                         if (FilterChoice == 0) {
@@ -927,14 +946,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             FilterList[currentFilter - 1].port.postMessage({command: "highPass"});
                         }
                         filterValues = [FilterChoice + 1,3,cutoff.inputEl.value];
+                        for (let i = 0; i < filters[currentFilter - 1].toggles.length;i++) {
+                            filters[currentFilter - 1].toggles[i] = false;
+                        }
+                        filters[currentFilter - 1].toggles[index % 3] = toggles[index].isActive;
                         drawFilter(filterValues, document.getElementById("filterView"));
                     }
                 }
                 catch {
                     
                 }
-                OSCList[currentOSC - 1].port.postMessage({command: "resetSamples"});
-                LFOList[currentLFO - 1].port.postMessage({command: "resetSamples"});
             });
         });
         OSCList.forEach(OSC => {

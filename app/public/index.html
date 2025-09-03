@@ -185,14 +185,14 @@
                     </div>
                 </div>
                 <div id="filter">
-                    <canvas id="filterView" width="348px" height="100px"></canvas>
+                    <canvas id="filterView" width="278px" height="100px"></canvas>
                     <div style="display: flex; align-items: start;">
                         <fieldset class="border-2 border-black w-[20] h-[130]">
                             <legend class="text-x1 font-bold text-black text-center px-2 p-0 m-0">Filter</legend>
 
                             <div id="filter-rack" class="flex flex-col items-center md:flex-row"></div>
                         </fieldset>
-                        <div id="filterTracking"></div>
+                        <div id="filterTracking" style="display: none;"></div>
                         <div class="button-container">
                             <div class="toggle-button" data-type="LP1">LP</div>
                             <!-- <div class="toggle-button" data-type="LP2">LP 2</div> -->
@@ -207,6 +207,9 @@
                     </div>
                 </div>
             </div>
+            <!-- <diV>
+                <input id="midiFile" type="file" accept=".mid, .midi" style="margin: 5rem 2rem;">
+            </diV> -->
         </div>
     </main>
 
@@ -267,7 +270,7 @@
                 <div class="flex items-center justify-center mb-0">
                     <input type="number"
                         class="rate-freq-input w-[14rem] text-center bg-white border-2 border-gray-400 rounded-md px-3 py-2 text-4xl font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value="0">
+                        value="0" min="0">
                     <span id="HertzLabel" class="ml-3 text-3xl font-medium text-gray-700">Hz</span>
                 </div>
             </div>

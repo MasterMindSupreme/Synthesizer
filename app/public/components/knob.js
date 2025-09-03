@@ -9,7 +9,7 @@ export class Knob {
             max: values[values.length - 1],
             // Defines the values you want to see labeled on the dial
             labels: values,
-            initialValue: title == "Sustain" ? 100 : 0,
+            initialValue: title == "Sustain" ? 100 : title == "Attack" ? 0.25 : title == "Release" ? 0.5 : 0,
             // The angle range for the knob's rotation in degrees.
             // -135 is bottom-left, 135 is bottom-right.
             angleRange: {

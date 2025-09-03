@@ -3,14 +3,14 @@ class FilterProcessor extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [{
                 name: 'alpha',
-                defaultValue: 0,
-                minValue: 0,
-                maxValue: 1,
+                defaultValue: 0.0,
+                minValue: 0.0,
+                maxValue: 1.0,
             },
             {
                 name: 'resonance',
-                defaultValue: 0.001,
-                minValue: 0.001,
+                defaultValue: 0.0,
+                minValue: 0.0,
                 maxValue: 1
             },
         ];
@@ -45,6 +45,26 @@ class FilterProcessor extends AudioWorkletProcessor {
         };
     }
 
+    highPass(fc, Q) {
+        // Logic does not work correctly, but is left here 
+        // because of the interesting results
+        const omega = 2 * Math.PI * fc / this.sampleRate;
+        const alpha = Math.sin(omega) / (2 * Q);
+        const cos_omega = Math.cos(omega);
+
+        const b0 =  (1 + cos_omega) / 2;
+        const b1 = -(1 + cos_omega);
+        const b2 =  (1 + cos_omega) / 2;
+        const a0 =  1 + alpha;
+        const a1 = -2 * cos_omega;
+        const a2 =  1 - alpha;
+
+        return {
+            b: [b0 / a0, b1 / a0, b2 / a0],
+            a: [1, a1 / a0, a2 / a0]
+        };
+    }
+
     process(inputs, outputs, parameters) {
         const input1 = inputs[0][0] ?? [null];
         const input2 = inputs[1][0] ?? [null];
@@ -56,23 +76,22 @@ class FilterProcessor extends AudioWorkletProcessor {
             let sample;
             for (let channel = 0; channel < output.length; channel++) {
                 const currentAlpha = alpha.length === 1 ? alpha[0] : alpha[i];
-                const currentCutOff = 20*(2**(alpha*10));
-                const currentFrequency = 2*Math.PI*(currentCutOff/this.sampleRate);
-                const finalAlpha = Math.sin(currentFrequency)/(2**(1/2));
+                const currentCutOff = 20*(2**(currentAlpha*10));
                 const currentResonance = resonance.length === 1 ? resonance[0] : resonance[i];
+                const currentQ = 2**(1/2)/2 + (currentResonance**2) * 15;
                 if (this.filterType == "lowPass"){
-                    const b = (1-Math.cos(currentFrequency))/(2*(1+currentAlpha));
-                    const a = (1-Math.exp(-currentFrequency));
-                    this.b_coeffs = [a];
-                    this.a_coeffs = [1, -(1-a)];
+                    this.b_coeffs = [1, currentAlpha];
+                    this.a_coeffs = [-(1-currentAlpha), 1-currentResonance];
                 }
                 if (this.filterType == "bandPass"){
-                    this.b_coeffs = [1, currentAlpha, 1, currentAlpha];
-                    this.a_coeffs = [-(1-currentAlpha), (1-currentResonance)];
+                    // Not implemented yet
+                    this.b_coeffs = [1];
+                    this.a_coeffs = [1];
                 }
                 if (this.filterType == "highPass"){
-                    this.b_coeffs = [1, currentAlpha];
-                    this.a_coeffs = [-(1-currentAlpha), (1-currentResonance)];
+                    let coeff = this.highPass(currentCutOff, currentQ);
+                    this.b_coeffs = [coeff.b[0], coeff.b[1], coeff.b[2]];
+                    this.a_coeffs = [coeff.a[0], coeff.a[1], coeff.a[2]];
                 }
                 this.M = this.b_coeffs.length - 1;
                 this.N = this.a_coeffs.length - 1;
@@ -86,11 +105,11 @@ class FilterProcessor extends AudioWorkletProcessor {
                 }
                 for (let j = 0; j < this.a_coeffs.length; j++) {
                     current_output -= this.a_coeffs[j] * this.y_history[j];
-                    if (Number.isNaN(current_output)) {
+                    if (Number.isNaN(current_output) || !Number.isFinite(current_output)) {
                         current_output = 0;
                     }
                 }
-                sample = current_output * ((currentAlpha)**-(1/4)) * (currentResonance**(1/16));
+                sample = current_output;
                 for (let j = this.N; j > 0; j--) {
                     this.y_history[j] = this.y_history[j - 1];
                 }

@@ -100,8 +100,11 @@ class OSCProcessor extends AudioWorkletProcessor {
                             this.inputSamples = [];
                             this.maxSamples = [];
                             this.sampleIndex = [];
+                            this.port.postMessage([this.samples, this.fileName]);
+                            this.samples = [];
                             this.index = 0;
                         }
+                        this.samples.push(sample);
                     } else if (!this.sampled) {
                         this.phase += (currentFrequency * hertz) * (input1[channel] == null ? 1 : input1[channel][i]) * (input2[channel] == null ? 1 : input2[channel][i]) * (input3[channel] == null ? 1 : input3[channel][i]);
                         let sharp = 0.5;
